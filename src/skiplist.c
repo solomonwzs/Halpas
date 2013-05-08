@@ -15,51 +15,102 @@ static unsigned _randomLevel(int maxLevel, float p){
     return level;
 }
 
-static unsigned _maxLevel(int n, float p){
-    return (int)ceil(log(n)/log(1/p));
+//static unsigned _maxLevel(int n, float p){
+//    return (int)ceil(log(n)/log(1/p));
+//}
+
+static skiplistNode *_skiplistCreateNode(int level, char *key, void *value,
+        void (*freeNode)(void *)){
+    skiplistNode *sln=malloc(sizeof(skiplistNode)*(1+level));
+    sln->key=key;
+    sln->value=value;
+    sln->freeNode=freeNode;
+
+    return sln;
 }
 
-int skiplistInit(skiplist *list, float p){
-    list->level=0;
-    list->length=0;
-    list->p=p;
-    list->header=NULL;
-    return 1;
+static void _skiplistFreeNode(skiplistNode *sln){
+    if (sln->freeNode){
+        sln->freeNode(sln->value);
+    }
+    free(sln);
 }
 
-int skiplistAdd(skiplist *list, char *key, void *value){
-    skiplistNode *x, *newNode;
-    skiplistNode **newForward, *update[SKILLIST_MAXLEVEL];
-    unsigned i, newNodeLevel, maxLevel;
-    int ok=1;
+skiplist *skiplistInit(float p){
+    skiplist *sl=malloc(sizeof(skiplist));
+    int i;
 
-    x=list->header;
-    for (i=list->level-1; i>=0; i--){
-        while (x!=NULL && strcmp(x->forward[i]->key, key)==-1){
+    sl->level=0;
+    sl->length=0;
+    sl->p=p;
+    sl->header=_skiplistCreateNode(SKILLIST_MAXLEVEL, NULL, NULL, NULL);
+    for (i=0; i<SKILLIST_MAXLEVEL; i++){
+        sl->header->forward[i]=NULL;
+    }
+    return sl;
+}
+
+void skiplistFree(skiplist *sl){
+    skiplistNode *node=sl->header->forward[0], *next;
+
+    _skiplistFreeNode(sl->header);
+    while (node){
+        next=node->forward[0];
+        _skiplistFreeNode(node);
+        node=next;
+    }
+    free(sl);
+}
+
+skiplistNode *skiplistInsert(skiplist *sl, char *key, void *value,
+        void (*freeNode)(void *)){
+    skiplistNode *x, *update[SKILLIST_MAXLEVEL];
+    int i, level;
+
+    x=sl->header;
+    for (i=sl->level-1; i>=0; i--){
+        while (x->forward[i] && strcmp(x->forward[i]->key, key)==-1){
             x=x->forward[i];
         }
         update[i]=x;
     }
-    x=x->forward[0];
-    if (strcmp(x->key, key)==0){
-        ok=0;
+
+    if (x->forward[1] && strcmp(x->forward[1]->key, key)==0){
+        return NULL;
     }
-    else{
-        maxLevel=_maxLevel(list->length+1, list->p);
-        newNodeLevel=_randomLevel(maxLevel, list->p);
 
-        newNode=malloc(sizeof(skiplistNode));
-        newNode->key=key;
-        newNode->value=value;
+    level=_randomLevel(sl->length, sl->p);
+    if (level>sl->level){
+        for (i=sl->level; i<level; i++){
+            update[i]=sl->header;
+        }
+        sl->level=level;
+    }
+    x=_skiplistCreateNode(level, key, value, freeNode);
+    for (i=0; i<level; i++){
+        x->forward[i]=update[i]->forward[i];
+        update[i]->forward[i]=x;
+    }
+    sl->length++;
+    
+    return x;
+}
 
-        if (newNodeLevel>list->level){
-            newForward=malloc(sizeof(skiplistNode *)*newNodeLevel);
-            memcpy(newForward, list->header->forward, list->level+1);
-            for (i=list->level; i<newNodeLevel; i++){
-                newForward[i]=newNode;
-            }
+void *skiplistSearch(skiplist *sl, char *key){
+    skiplistNode *x=sl->header;
+    int i;
+
+    for (i=sl->level-1; i>=0; i--){
+        while (x->forward[i] && strcmp(x->forward[i]->key, key)==-1){
+            x=x->forward[i];
         }
     }
-    
-    return ok;
+
+    x=x->forward[0];
+    if (x && strcmp(x->key, key)==0){
+        return x->value;
+    }
+    else{
+        return NULL;
+    }
 }

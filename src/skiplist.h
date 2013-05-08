@@ -20,11 +20,15 @@ typedef struct skiplist{
 typedef struct skiplistNode{
     char *key;
     void *value;
+    void (*freeNode)(void *);
     struct skiplistNode *forward[];
 } skiplistNode;
 
 //extern skiplistNode slsearchNode(skiplist list, char *key);
-extern int skiplistInit(skiplist *list, float p);
-extern int skiplistAdd(skiplist *list, char *key, void *value);
+extern skiplist *skiplistInit(float p);
+extern skiplistNode *skiplistInsert(skiplist *sl, char *key, void *value,
+        void (*freeNode)(void *));
+extern void skiplistFree(skiplist *sl);
+extern void *skiplistSearch(skiplist *sl, char *key);
 
 #endif

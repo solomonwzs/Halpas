@@ -1,9 +1,14 @@
 #include "skiplist.h"
 
 int main(int argc, char **argv){
-    char s[100];
+    skiplist *sl=skiplistInit(0.5);
+    int a=1, b=2;
 
-    memcpy(s, "123", 2);
-    printf("%s\n", s);
+    skiplistInsert(sl, "a", &a, NULL);
+    skiplistInsert(sl, "b", &b, NULL);
+
+    printf("%d\n", *((int *)skiplistSearch(sl, "a")));
+
+    free(sl);
     return 0;
 }
