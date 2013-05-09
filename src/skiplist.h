@@ -8,7 +8,10 @@
 #include <string.h>
 #include <time.h>
 
-#define SKILLIST_MAXLEVEL 32
+#define SKIPLIST_MAXLEVEL 32
+
+#define SKIPLIST_OPT_INSERT 0x00
+#define SKIPLIST_OPT_WRITE 0x01
 
 typedef struct skiplist{
     struct skiplistNode *header;
@@ -26,9 +29,14 @@ typedef struct skiplistNode{
 
 //extern skiplistNode slsearchNode(skiplist list, char *key);
 extern skiplist *skiplistInit(float p);
-extern skiplistNode *skiplistInsert(skiplist *sl, char *key, void *value,
+extern int skiplistInsert(skiplist *sl, char *key, void *value,
+        void (*freeNode)(void *));
+extern int skiplistUpdate(skiplist *sl, char *key, void *value,
+        void (*freeNode)(void *));
+extern int skiplistWrite(skiplist *sl, char *key, void *value,
         void (*freeNode)(void *));
 extern void skiplistFree(skiplist *sl);
-extern void *skiplistSearch(skiplist *sl, char *key);
+extern skiplistNode *skiplistSearch(skiplist *sl, char *key);
+extern void skiplistDelete(skiplist *sl, char *key);
 
 #endif
