@@ -22,6 +22,7 @@ extern dllistNode *dllistLeftPull(dllist *dl);
 extern dllistNode *dllistRightPull(dllist *dl);
 extern dllistNode *dllistIndex(dllist *dl, long index);
 extern void dllistFilter(dllist *dl, int (*filter)(void *));
+extern void dllistReverse(dllist *dl);
 extern void dllistFree(dllist *dl);
 
 #endif

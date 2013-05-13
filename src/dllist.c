@@ -10,7 +10,7 @@ dllist *dllistCreate(void *(*dupFunc)(void *), void (*freeFunc)(void *)){
         dl->head=NULL;
         dl->tail=NULL;
     }
-    return NULL;
+    return dl;
 }
 
 int dllistLeftPush(dllist *dl, void *value){
@@ -20,11 +20,16 @@ int dllistLeftPush(dllist *dl, void *value){
         dln->value=value;
         dln->prev=NULL;
         dln->next=dl->head;
-        dl->head=dln;
 
-        if (dl->length++==0){
+        if (dl->head){
+            dl->head->prev=dln;
+        }
+        else{
             dl->tail=dln;
         }
+        dl->head=dln;
+        dl->length++;
+
         return 1;
     }
     else{
@@ -51,11 +56,16 @@ int dllistRightPush(dllist *dl, void *value){
         dln->value=value;
         dln->prev=dl->tail;
         dln->next=NULL;
-        dl->tail=dln;
 
-        if (dl->length++==0){
+        if (dl->tail){
+            dl->tail->next=dln;
+        }
+        else{
             dl->head=dln;
         }
+        dl->tail=dln;
+        dl->length++;
+
         return 1;
     }
     else{
@@ -99,9 +109,12 @@ void dllistFilter(dllist *dl, int (*filter)(void *)){
 
     if (dl->head){
         if (dl->free){
-            for (p=&dl->head; p; ){
+            for (p=&dl->head; *p; ){
                 n=*p;
                 if (filter(n->value)>0){
+                    if (n->next){
+                        n->next->prev=(*p)->prev;
+                    }
                     *p=n->next;
                     dl->length--;
                     dl->free(n->value);
@@ -113,9 +126,12 @@ void dllistFilter(dllist *dl, int (*filter)(void *)){
             }
         }
         else{
-            for (p=&dl->head; p; ){
+            for (p=&dl->head; *p; ){
                 n=*p;
                 if (filter(n->value)>0){
+                    if (n->next){
+                        n->next->prev=(*p)->prev;
+                    }
                     *p=n->next;
                     dl->length--;
                     free(n);
@@ -129,4 +145,36 @@ void dllistFilter(dllist *dl, int (*filter)(void *)){
 }
 
 void dllistFree(dllist *dl){
+    dllistNode *dln=dl->head, *next;
+
+    if (dl->free){
+        while (dln){
+            next=dln->next;
+            dl->free(dln->value);
+            free(dln);
+            dln=next;
+        }
+    }
+    else{
+        while (dln){
+            next=dln->next;
+            free(dln);
+            dln=next;
+        }
+    }
+    free(dl);
+}
+
+void dllistReverse(dllist *dl){
+    dllistNode *dln=dl->head, *next;
+
+    while (dln){
+        next=dln->next;
+        dln->next=dln->prev;
+        dln->prev=next;
+        dln=next;
+    }
+    next=dl->head;
+    dl->head=dl->tail;
+    dl->tail=next;
 }
