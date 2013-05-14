@@ -1,5 +1,11 @@
 #include "dllist.h"
 #include "skiplist.h"
+#include "hash.h"
+
+struct node{
+    int i;
+    struct node *next;
+};// __attribute__((packed));
 
 static void test_skiplist(){
     skiplist *sl=skiplistCreate(0.5, NULL);
@@ -74,6 +80,8 @@ static void test_dllist(){
 int main(int argc, char **argv){
     test_skiplist();
     test_dllist();
+
+    printf("%zu\n", sizeof(struct node));
 
     return 0;
 }

@@ -8,11 +8,6 @@
 #include <string.h>
 #include <time.h>
 
-#define SKIPLIST_MAXLEVEL 32
-
-#define SKIPLIST_OPT_INSERT 0x00
-#define SKIPLIST_OPT_WRITE 0x01
-
 typedef struct skiplist{
     struct skiplistNode *header;
     unsigned long length;

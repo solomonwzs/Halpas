@@ -1,5 +1,10 @@
 #include "skiplist.h"
 
+#define SKIPLIST_MAXLEVEL 32
+
+#define SKIPLIST_OPT_INSERT 0x00
+#define SKIPLIST_OPT_WRITE 0x01
+
 static uint8_t _setSeed=0;
 
 static unsigned _randomLevel(int maxLevel, float p){
