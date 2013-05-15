@@ -2,10 +2,10 @@
 #include "skiplist.h"
 #include "hash.h"
 
-struct node{
-    int i;
-    struct node *next;
-};// __attribute__((packed));
+//struct node{
+//    int i;
+//    struct node *next;
+//};// __attribute__((packed));
 
 static void test_skiplist(){
     skiplist *sl=skiplistCreate(0.5, NULL);
@@ -77,11 +77,18 @@ static void test_dllist(){
     dllistFree(dl);
 }
 
+void test_hash(){
+    uint32_t h[4];
+    char *key="k&JHBJdsbg&^Tdhw3*(W&fhejkvbt$#25/";
+    murmurHash_x64_128(key, strlen(key), 19881218, h);
+
+    printf("%8x %8x %8x %8x\n", h[0], h[1], h[2], h[3]);
+}
+
 int main(int argc, char **argv){
     test_skiplist();
     test_dllist();
-
-    printf("%zu\n", sizeof(struct node));
+    test_hash();
 
     return 0;
 }
