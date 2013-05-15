@@ -52,7 +52,7 @@ void murmurHash_x86_32(const void *key, int len, uint32_t seed, void *out){
     int i;
     uint32_t h1=seed, k1;
 
-    for (i=-nblocks; i; i++){
+    for (i=-nblocks; i; ++i){
         k1=_getblock32(blocks, i);
 
         k1*=c1;
@@ -92,11 +92,11 @@ void murmurHash_x86_128(const void *key, int len, uint32_t seed, void *out){
     int i, j, index;
     uint32_t k[4];
 
-    for (i=-nblocks; i; i++){
-        for (j=0; j<4; j++){
+    for (i=-nblocks; i; ++i){
+        for (j=0; j<4; ++j){
             k[j]=_getblock32(blocks, i*4+j);
         }
-        for (j=0; j<4; j++){
+        for (j=0; j<4; ++j){
             index=(j+1)%4;
             k[j]*=c[j]; k[j]=_rotl32(k[j], 15+j); k[j]*=c[index]; h[j]^=k[j];
             h[j]=_rotl32(h[j], 19-i*2); h[j]+=h[index]; h[j]=h[j]*m+n[j];
@@ -129,21 +129,21 @@ void murmurHash_x86_128(const void *key, int len, uint32_t seed, void *out){
                  k[0]*=c[0]; k[0]=_rotl32(k[0], 15); k[0]*=c[1]; h[0]^=k[0];
     }
 
-    for (i=0; i<4; i++) h[i]^=len;
+    for (i=0; i<4; ++i) h[i]^=len;
 
     h[0]+=(h[1]+h[2]+h[3]);
     h[1]+=h[0];
     h[2]+=h[0];
     h[3]+=h[0];
 
-    for (i=0; i<4; i++) h[i]=_fmix32(h[i]);
+    for (i=0; i<4; ++i) h[i]=_fmix32(h[i]);
 
     h[0]+=(h[1]+h[2]+h[3]);
     h[1]+=h[0];
     h[2]+=h[0];
     h[3]+=h[0];
 
-    for (i=0; i<4; i++) ((uint32_t *)out)[i]=h[i];
+    for (i=0; i<4; ++i) ((uint32_t *)out)[i]=h[i];
 }
 
 void murmurHash_x64_128(const void *key, int len, uint32_t seed, void *out){
@@ -166,7 +166,7 @@ void murmurHash_x64_128(const void *key, int len, uint32_t seed, void *out){
 
     int i;
 
-    for (i=0; i<nblocks; i++){
+    for (i=0; i<nblocks; ++i){
         k1=_getblock64(blocks, i*2);
         k2=_getblock64(blocks, i+2+1);
 

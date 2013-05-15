@@ -15,7 +15,7 @@ static unsigned _randomLevel(int maxLevel, float p){
         _setSeed=1;
     }
     while (((float)rand())/RAND_MAX<p && level<maxLevel){
-        level++;
+        ++level;
     }
     return level;
 }
@@ -39,7 +39,7 @@ skiplist *skiplistCreate(float p, void (*freeFunc)(void *)){
         sl->p=p;
         sl->free=freeFunc;
         sl->header=_skiplistCreateNode(SKIPLIST_MAXLEVEL, NULL, NULL);
-        for (i=0; i<SKIPLIST_MAXLEVEL; i++){
+        for (i=0; i<SKIPLIST_MAXLEVEL; ++i){
             sl->header->forward[i]=NULL;
         }
     }
@@ -100,16 +100,16 @@ static int _skiplistPut(skiplist *sl, char *key, void *value, int opt){
 
     if (x){
         if (level>sl->level){
-            for (i=sl->level; i<level; i++){
+            for (i=sl->level; i<level; ++i){
                 update[i]=sl->header;
             }
             sl->level=level;
         }
-        for (i=0; i<level; i++){
+        for (i=0; i<level; ++i){
             x->forward[i]=update[i]->forward[i];
             update[i]->forward[i]=x;
         }
-        sl->length++;
+        ++sl->length;
         
         return 1;
     }
@@ -173,7 +173,7 @@ void skiplistDelete(skiplist *sl, char *key){
 
     x=x->forward[0];
     if (x && strcmp(x->key, key)==0){
-        for (i=0; i<sl->level; i++){
+        for (i=0; i<sl->level; ++i){
             if (update[i]->forward[i]!=x){
                 break;
             }
