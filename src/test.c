@@ -2,11 +2,6 @@
 #include "skiplist.h"
 #include "hash.h"
 
-//struct node{
-//    int i;
-//    struct node *next;
-//};// __attribute__((packed));
-
 static void test_skiplist(){
     skiplist *sl=skiplistCreate(0.5, NULL);
     skiplistNode *sln;
