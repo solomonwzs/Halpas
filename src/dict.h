@@ -15,7 +15,7 @@ typedef struct dictEntry{
 } dictEntry;
 
 typedef struct dictFunc{
-    void (*hashfunc)(void *privdata, const void *key);
+    unsigned long (*hashfunc)(void *privdata, const void *key);
     void (*keyfreefunc)(void *privdata, void *key);
     void (*valfreefunc)(void *privdata, void *val);
     void *(*keydupfunc)(void *privdata, void *key);
@@ -29,12 +29,13 @@ typedef struct dictHashTable{
 } dictHashTable;
 
 typedef struct dict{
+    uint8_t rehashing;
     void *privdata;
-    struct dictFunc *func;
+    struct dictFunc func;
     dictHashTable ht[2];
 } dict;
 
-extern dict *dictCreate(dictFunc *dictFunc, void *privdata);
+extern dict *dictCreate(dictFunc dictFunc, void *privdata, unsigned long size);
 extern void dictFree(dict *d);
 
 #endif

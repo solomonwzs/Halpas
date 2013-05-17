@@ -1,12 +1,37 @@
 #include "dict.h"
 
-#define _dictFreeKey(d, entry) \
-    if ((d)->type->keyfreefunc) \
-        (d)->type->keyfreefunc((d)->privdata, (entry)->key)
+#define _EXPAND_RATIO 1
+#define _SHRINK_RATIO 0.1
 
-#define _dictFreeVal(d, entry) \
-    if ((d)->type->keyvalfunc) \
-        (d)->type->keyvalfunc((d)->privdata, (entry)->v.val)
+#define _dictFreeKey(_d_, _entry_) do{\
+    if ((_d_)->func.keyfreefunc) \
+        (_d_)->func.keyfreefunc((_d_)->privdata, (_entry_)->key);\
+} while(0)
+
+#define _dictSetKey(_d_, _entry_, _key_) do{\
+    if ((_d_)->func.keydupfunc) \
+        (_entry_)->key=(_d_)->func.keydupfunc((_d_)->privdata, _key_); \
+    else \
+        (_entry_)->key=(_key_);\
+} while(0)
+
+#define _dictFreeVal(_d_, _entry_) do{\
+    if ((_d_)->func.valfreefunc) \
+        (_d_)->func.valfreefunc((_d_)->privdata, (_entry_)->v.val);\
+} while(0)
+
+#define _dictSetUnsigedInteger(_entry_, _ui_) \
+    (_entry_)->v.ui=(_ui_)
+
+#define _dictSetSigedInteger(_entry_, _si_) \
+    (_entry_)->v.si=(_si_)
+
+#define _dictSetVal(_d_, _entry_, _val_) do{\
+    if ((_d_)->func.valdupfunc) \
+        (_entry_)->v.val=(_d_)->func.valdupfunc((_d_)->privdata, _val_); \
+    else \
+        (_entry_)->v.val=(_val_);\
+} while(0)
 
 static void _dictHashTableInit(dictHashTable *ht, unsigned long size){
     ht->size=size;
@@ -24,18 +49,90 @@ static void _dictHashTableInit(dictHashTable *ht, unsigned long size){
     }
 }
 
-dict *dictCreate(dictFunc *dictfunc, void *privdata){
+static void _dictClearHashTable(dict *d, int index){
+    unsigned long i;
+    dictHashTable *dht=&(d->ht[index]);
+    dictEntry *de, *next;
+
+    for (i=0; i<dht->size && dht->used>0; ++i){
+        if ((de=dht->table[i])!=NULL){
+            while (de){
+                next=de->next;
+                _dictFreeKey(d, de);
+                _dictFreeVal(d, de);
+                free(de);
+                --dht->used;
+                de=next;
+            }
+        }
+    }
+    free(dht->table);
+    dht->table=NULL;
+}
+
+static void _dictRehashStep(dict *d){
+    dictHashTable *dht1=&d->ht[1];
+
+    if (dht1->used==0){
+        d->rehashing=0;
+    }
+    else{
+        dictEntry *de, *next;
+        unsigned long i, hashIndex;
+        dictHashTable *dht0=&d->ht[0];
+
+        for (i=0; i<dht1->size && dht1->table[i]==NULL; ++i);
+
+        de=dht1->table[i];
+        while (de){
+            next=de->next;
+
+            hashIndex=d->func.hashfunc(d->privdata, de->key)&dht0->size;
+            de->next=dht0->table[hashIndex];
+            dht0->table[hashIndex]=de;
+            --dht1->used;
+
+            de=next;
+        }
+
+        if (dht1->used==0){
+            d->rehashing=0;
+        }
+    }
+}
+
+//static dictEntry *_dictAddRaw(dict *d, void *key){
+//    dictEntry *de=malloc(sizeof(dictEntry *));
+//
+//    if (d->rehashing!=0) _dictRehashStep(d);
+//    if (de){
+//        unsigned long hashIndex;
+//        dictHashTable *dht0=&(d->ht[0]);
+//
+//
+//        hashIndex=d->func.hashfunc(d->privdata, key)&dht0->size;
+//        de->next=dht0->table[hashIndex];
+//        dht0->table[hashIndex]=de;
+//        ++dht0->used;
+//    }
+//    return de;
+//}
+
+dict *dictCreate(dictFunc dictfunc, void *privdata, unsigned long size){
     dict *d=malloc(sizeof(dict));
 
     d->func=dictfunc;
     d->privdata=privdata;
+    d->rehashing=0;
 
-    _dictHashTableInit(&d->ht[0], 0);
+    _dictHashTableInit(&d->ht[0], size);
     _dictHashTableInit(&d->ht[1], 0);
 
     return d;
 }
 
-void dictClearHashTable(dict *d, int index){
-    unsigned long i;
+void dictFree(dict *d){
+    _dictClearHashTable(d, 0);
+    _dictClearHashTable(d, 1);
+    free(d);
 }
