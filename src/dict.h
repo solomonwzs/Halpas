@@ -37,5 +37,6 @@ typedef struct dict{
 
 extern dict *dictCreate(dictFunc dictFunc, void *privdata, unsigned long size);
 extern void dictFree(dict *d);
+extern dictEntry *dictAddRaw(dict *d, void *key);
 
 #endif

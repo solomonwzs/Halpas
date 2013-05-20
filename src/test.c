@@ -1,3 +1,4 @@
+#include "dict.h"
 #include "dllist.h"
 #include "skiplist.h"
 #include "hash.h"
@@ -80,7 +81,36 @@ void test_hash(){
     printf("%8x %8x %8x %8x\n", h[0], h[1], h[2], h[3]);
 }
 
+unsigned long test_dict_hash_func(void *privdata, const void *key){
+    uint32_t h[4];
+    murmurHash_x64_128(key, strlen(key), 19881218, h);
+
+    return h[0];
+}
+
+void test_dict(){
+    dictFunc df;
+    dict *d;
+    dictEntry *de;
+
+    df.hashfunc=test_dict_hash_func;
+    df.keydupfunc=NULL;
+    df.keyfreefunc=NULL;
+    df.valdupfunc=NULL;
+    df.valfreefunc=NULL;
+    d=dictCreate(df, NULL, 2);
+
+    de=dictAddRaw(d, "hello"); de->v.ui=0;
+    de=dictAddRaw(d, "world"); de->v.ui=1;
+    de=dictAddRaw(d, "!"); de->v.ui=2;
+    de=dictAddRaw(d, "test"); de->v.ui=3;
+    de=dictAddRaw(d, "dict"); de->v.ui=4;
+
+    dictFree(d);
+}
+
 int main(int argc, char **argv){
+    test_dict();
     test_skiplist();
     test_dllist();
     test_hash();
