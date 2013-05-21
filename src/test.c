@@ -88,12 +88,17 @@ unsigned long test_dict_hash_func(void *privdata, const void *key){
     return h[0];
 }
 
+int test_dict_keycmp_func(void *privdata, const void *key1, const void *key2){
+    return strcmp(key1, key2);
+}
+
 void test_dict(){
     dictFunc df;
     dict *d;
     dictEntry *de;
 
     df.hashfunc=test_dict_hash_func;
+    df.keycmpfunc=test_dict_keycmp_func;
     df.keydupfunc=NULL;
     df.keyfreefunc=NULL;
     df.valdupfunc=NULL;
@@ -105,6 +110,9 @@ void test_dict(){
     de=dictAddRaw(d, "!"); de->v.ui=2;
     de=dictAddRaw(d, "test"); de->v.ui=3;
     de=dictAddRaw(d, "dict"); de->v.ui=4;
+
+    de=dictFind(d, "hello");
+    printf("%li\n", de->v.ui);
 
     dictFree(d);
 }
