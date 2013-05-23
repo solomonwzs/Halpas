@@ -111,8 +111,15 @@ void test_dict(){
     de=dictAddRaw(d, "test"); de->v.ui=3;
     de=dictAddRaw(d, "dict"); de->v.ui=4;
 
+    printf("%d\n", dictDelete(d, "hello", 0));
+
     de=dictFind(d, "hello");
-    printf("%li\n", de->v.ui);
+    if (de){
+        printf("%li\n", de->v.ui);
+    }
+    else{
+        printf("it is null\n");
+    }
 
     dictFree(d);
 }

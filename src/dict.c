@@ -208,19 +208,33 @@ void dictFree(dict *d){
     free(d);
 }
 
-//int dictDelete(dict *d, const void *key, int freeval){
-//    unsigned long h;
-//    uint8_t i;
-//    dictEntry *de;
-//
-//    if (_dictRehashing(d))
-//        _dictRehashStep(d);
-//    h=d->func.hashfunc(d->privdata, key);
-//    for (i=0; i<2; ++i){
-//        de=d->ht[i].table[h%d->ht[i].size];
-//        while (de){
-//            if (_dictKeyCompare(d, key, de->key)==0){
-//            }
-//        }
-//    }
-//}
+int dictDelete(dict *d, const void *key, int freeval){
+    unsigned long h;
+    uint8_t i;
+    dictEntry *de, **p;
+
+    if (_dictRehashing(d))
+        _dictRehashStep(d);
+    h=d->func.hashfunc(d->privdata, key);
+    for (i=0; i<2; ++i){
+        for (p=&d->ht[i].table[h%d->ht[i].size]; *p;){
+            de=*p;
+            if (_dictKeyCompare(d, key, de->key)==0){
+                if (freeval){
+                    _dictFreeKey(d, de);
+                    _dictFreeVal(d, de);
+                }
+                *p=de->next;
+                --d->ht[i].used;
+                free(de);
+                return DICT_OPT_OK;
+            }
+            else{
+                p=&de->next;
+            }
+        }
+        if (!_dictRehashing(d))
+            return DICT_OPT_ERR;
+    }
+    return DICT_OPT_ERR;
+}

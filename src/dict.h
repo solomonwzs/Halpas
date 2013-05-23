@@ -4,8 +4,8 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-#define DICT_OPT_OK 0
-#define DICT_OPT_ERR 1
+#define DICT_OPT_OK 1
+#define DICT_OPT_ERR 0
 
 typedef struct dictEntry{
     void *key;
