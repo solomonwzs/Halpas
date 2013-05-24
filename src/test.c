@@ -96,6 +96,8 @@ void test_dict(){
     dictFunc df;
     dict *d;
     dictEntry *de;
+    int i;
+    char *s[6]={"hello", "world", "!", "test", "dict", "func"};
 
     df.hashfunc=test_dict_hash_func;
     df.keycmpfunc=test_dict_keycmp_func;
@@ -103,22 +105,30 @@ void test_dict(){
     df.keyfreefunc=NULL;
     df.valdupfunc=NULL;
     df.valfreefunc=NULL;
-    d=dictCreate(df, NULL, 2);
+    d=dictCreate(&df, NULL, 2);
 
-    de=dictAddRaw(d, "hello"); de->v.ui=0;
-    de=dictAddRaw(d, "world"); de->v.ui=1;
-    de=dictAddRaw(d, "!"); de->v.ui=2;
-    de=dictAddRaw(d, "test"); de->v.ui=3;
-    de=dictAddRaw(d, "dict"); de->v.ui=4;
+    de=dictAddRaw(d, "hello"); dictSetUnsigedInteger(de, 0);
+    de=dictAddRaw(d, "world"); dictSetUnsigedInteger(de, 1);
+    de=dictAddRaw(d, "!"); dictSetUnsigedInteger(de, 2);
+    de=dictAddRaw(d, "test"); dictSetUnsigedInteger(de, 3);
+    de=dictAddRaw(d, "dict"); dictSetUnsigedInteger(de, 4);
+    de=dictAddRaw(d, "func"); dictSetPoint(d, de, "string");
 
-    printf("%d\n", dictDelete(d, "hello", 0));
+    printf("%d\n", dictDelete(d, "!", 0));
 
-    de=dictFind(d, "hello");
-    if (de){
-        printf("%li\n", de->v.ui);
-    }
-    else{
-        printf("it is null\n");
+    for (i=0; i<6; ++i){
+        de=dictFind(d, s[i]);
+        if (de){
+            if (de->type==DICT_ENTRY_TYPE_UINT){
+                printf("%s\t%li\n", s[i], de->value.ui);
+            }
+            else if (de->type==DICT_ENTRY_TYPE_POINT){
+                printf("%s\t%s\n", s[i], (char *)de->value.point);
+            }
+        }
+        else{
+            printf("%s\tnull\n", s[i]);
+        }
     }
 
     dictFree(d);
@@ -129,6 +139,8 @@ int main(int argc, char **argv){
     test_skiplist();
     test_dllist();
     test_hash();
+
+    printf("%zu\n", sizeof(dictEntry));
 
     return 0;
 }

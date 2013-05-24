@@ -22,7 +22,14 @@ typedef struct skiplistNode{
     struct skiplistNode *forward[];
 } skiplistNode;
 
-//extern skiplistNode slsearchNode(skiplist list, char *key);
+typedef struct skiplistFunc{
+    int (*keycmpfunc)(void *privdata, const void *key1, const void *key2);
+    void (*keyfreefunc)(void *privdata, void *key);
+    void (*valfreefunc)(void *privdata, void *val);
+    void *(*keydupfunc)(void *privdata, void *key);
+    void *(*valdupfunc)(void *privdata, void *val);
+}skiplistFunc;
+
 extern skiplist *skiplistCreate(float p, void (*freeFunc)(void *));
 extern int skiplistInsert(skiplist *sl, char *key, void *value);
 extern int skiplistUpdate(skiplist *sl, char *key, void *value);

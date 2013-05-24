@@ -2,43 +2,6 @@
 
 #define _EXPAND_RATIO 1
 
-#define _dictFreeKey(_d_, _entry_) do{\
-    if ((_d_)->func.keyfreefunc) \
-        (_d_)->func.keyfreefunc((_d_)->privdata, (_entry_)->key);\
-} while(0)
-
-#define _dictSetKey(_d_, _entry_, _key_) do{\
-    if ((_d_)->func.keydupfunc) \
-        (_entry_)->key=(_d_)->func.keydupfunc((_d_)->privdata, _key_); \
-    else \
-        (_entry_)->key=(_key_);\
-} while(0)
-
-#define _dictFreeVal(_d_, _entry_) do{\
-    if ((_d_)->func.valfreefunc) \
-        (_d_)->func.valfreefunc((_d_)->privdata, (_entry_)->v.val);\
-} while(0)
-
-#define _dictSetUnsigedInteger(_entry_, _ui_) \
-    (_entry_)->v.ui=(_ui_)
-
-#define _dictSetSigedInteger(_entry_, _si_) \
-    (_entry_)->v.si=(_si_)
-
-#define _dictSetVal(_d_, _entry_, _val_) do{\
-    if ((_d_)->func.valdupfunc) \
-        (_entry_)->v.val=(_d_)->func.valdupfunc((_d_)->privdata, _val_); \
-    else \
-        (_entry_)->v.val=(_val_);\
-} while(0)
-
-#define _dictKeyCompare(_d_, _key1_, _key2_) \
-    (((_d_)->func.keycmpfunc)? \
-        (_d_)->func.keycmpfunc((_d_)->privdata, _key1_, _key2_): \
-        (_key1_)!=(_key2_))
-
-#define _dictRehashing(_d_) \
-    ((_d_)->rehashing!=0)
 
 static int _dictHashTableInit(dictHashTable *ht, unsigned long size){
     ht->size=size;
@@ -71,9 +34,12 @@ static void _dictFreeHashTable(dict *d, int index){
     for (i=0; i<dht->size && dht->used>0; ++i){
         if ((de=dht->table[i])!=NULL){
             while (de){
+#ifdef _DICT_DEBUG
+                printf("dict free\t%s\n", (char *)de->key);
+#endif
                 next=de->next;
-                _dictFreeKey(d, de);
-                _dictFreeVal(d, de);
+                dictFreeKey(d, de);
+                dictFreeVal(d, de);
                 free(de);
                 --dht->used;
                 de=next;
@@ -102,7 +68,7 @@ static void _dictRehashStep(dict *d){
         while (de){
             next=de->next;
 
-            hashIndex=d->func.hashfunc(d->privdata, de->key)%dht0->size;
+            hashIndex=d->func->hashfunc(d->privdata, de->key)%dht0->size;
             de->next=dht0->table[hashIndex];
             dht0->table[hashIndex]=de;
 
@@ -123,42 +89,43 @@ static unsigned long _dictKeyHashIndex(dict *d, const void *key){
     uint8_t i;
     dictEntry *de;
 
-    h=d->func.hashfunc(d->privdata, key);
+    h=d->func->hashfunc(d->privdata, key);
     for (i=0; i<2; ++i){
         index=h%d->ht[i].size;
         de=d->ht[i].table[index];
 
         while (de){
-            if (_dictKeyCompare(d, key, de->key)==0)
+            if (dictKeyCompare(d, key, de->key)==0)
                 return -1;
             de=de->next;
         }
-        if (!_dictRehashing(d)) break;
+        if (!dictRehashing(d)) break;
     }
 
     return h%d->ht[0].size;
 }
 
 dictEntry *dictAddRaw(dict *d, void *key){
-    dictEntry *de=malloc(sizeof(dictEntry *));
+    dictEntry *de;
     unsigned long hashIndex=_dictKeyHashIndex(d, key);
 
-    if (_dictRehashing(d))
+    if (dictRehashing(d))
         _dictRehashStep(d);
 
     if (hashIndex==-1)
         return NULL;
 
-    de=malloc(sizeof(dictEntry *));
+    de=malloc(sizeof(dictEntry));
     if (de){
         dictHashTable *dht0=&(d->ht[0]);
 
         de->next=dht0->table[hashIndex];
+        de->type=DICT_ENTRY_TYPE_UNKNOWN;
         dht0->table[hashIndex]=de;
-        _dictSetKey(d, de, key);
+        dictSetKey(d, de, key);
         ++dht0->used;
 
-        if (!_dictRehashing(d) && dht0->used/(float)dht0->size>_EXPAND_RATIO){
+        if (!dictRehashing(d) && dht0->used/(float)dht0->size>_EXPAND_RATIO){
             d->ht[1]=d->ht[0];
             _dictHashTableInit(&(d->ht[0]), d->ht[1].size*2);
             d->rehashing=1;
@@ -167,7 +134,7 @@ dictEntry *dictAddRaw(dict *d, void *key){
     return de;
 }
 
-dict *dictCreate(dictFunc dictfunc, void *privdata, unsigned long size){
+dict *dictCreate(dictFunc *dictfunc, void *privdata, unsigned long size){
     dict *d=malloc(sizeof(dict));
 
     d->func=dictfunc;
@@ -185,17 +152,17 @@ dictEntry *dictFind(dict *d, const void *key){
     uint8_t i;
     dictEntry *de;
 
-    if (_dictRehashing(d))
+    if (dictRehashing(d))
         _dictRehashStep(d);
-    h=d->func.hashfunc(d->privdata, key);
+    h=d->func->hashfunc(d->privdata, key);
     for (i=0; i<2; ++i){
         de=d->ht[i].table[h%d->ht[i].size];
         while (de){
-            if (_dictKeyCompare(d, key, de->key)==0)
+            if (dictKeyCompare(d, key, de->key)==0)
                 return de;
             de=de->next;
         }
-        if (!_dictRehashing(d))
+        if (!dictRehashing(d))
             return NULL;
     }
 
@@ -213,16 +180,16 @@ int dictDelete(dict *d, const void *key, int freeval){
     uint8_t i;
     dictEntry *de, **p;
 
-    if (_dictRehashing(d))
+    if (dictRehashing(d))
         _dictRehashStep(d);
-    h=d->func.hashfunc(d->privdata, key);
+    h=d->func->hashfunc(d->privdata, key);
     for (i=0; i<2; ++i){
         for (p=&d->ht[i].table[h%d->ht[i].size]; *p;){
             de=*p;
-            if (_dictKeyCompare(d, key, de->key)==0){
+            if (dictKeyCompare(d, key, de->key)==0){
                 if (freeval){
-                    _dictFreeKey(d, de);
-                    _dictFreeVal(d, de);
+                    dictFreeKey(d, de);
+                    dictFreeVal(d, de);
                 }
                 *p=de->next;
                 --d->ht[i].used;
@@ -233,7 +200,7 @@ int dictDelete(dict *d, const void *key, int freeval){
                 p=&de->next;
             }
         }
-        if (!_dictRehashing(d))
+        if (!dictRehashing(d))
             return DICT_OPT_ERR;
     }
     return DICT_OPT_ERR;
