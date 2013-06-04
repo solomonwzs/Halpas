@@ -70,7 +70,7 @@
 typedef struct dictEntry{
     uint8_t type;
     void *key;
-    union {
+    union{
         void *point;
         uint64_t ui;
         int64_t si;
