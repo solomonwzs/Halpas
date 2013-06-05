@@ -2,12 +2,17 @@
 #include "dllist.h"
 #include "skiplist.h"
 #include "hash.h"
+#include "btree.h"
+
+#define printDivLine(X) printf("==========%s==========\n", X)
 
 int test_keycmp_func(void *privdata, const void *key1, const void *key2){
     return strcmp(key1, key2);
 }
 
 static void test_skiplist(){
+    printDivLine("test_skiplist");
+
     skiplistFunc slf;
     skiplist *sl;
     skiplistNode *sln;
@@ -20,14 +25,6 @@ static void test_skiplist(){
 
     sl=skiplistCreate(0.5, &slf, NULL);
 
-    //skiplistInsert(sl, "a", "hello");
-    //skiplistInsert(sl, "e", "world");
-    //skiplistInsert(sl, "w", "!");
-    //skiplistInsert(sl, "b", "good");
-    //skiplistInsert(sl, "d", "morning");
-    //skiplistInsert(sl, "x", "apple");
-    //skiplistInsert(sl, "h", "orange");
-    //skiplistInsert(sl, "c", "gcc");
     sln=skiplistAddRaw(sl, "a"); skiplistSetPoint(sl, sln, "hello");
     sln=skiplistAddRaw(sl, "e"); skiplistSetPoint(sl, sln, "world");
     sln=skiplistAddRaw(sl, "w"); skiplistSetPoint(sl, sln, "!");
@@ -50,6 +47,8 @@ static int dllist_filter(void *s){
 }
 
 static void test_dllist(){
+    printDivLine("test_dllist");
+
     dllist *dl=dllistCreate(NULL, NULL);
     dllistNode *dln;
 
@@ -95,6 +94,8 @@ static void test_dllist(){
 }
 
 void test_hash(){
+    printDivLine("test_hash");
+
     uint32_t h[4];
     char *key="k&JHBJdsbg&^Tdhw3*(W&fhejkvbt$#25/";
     murmurHash_x64_128(key, strlen(key), 19881218, h);
@@ -110,6 +111,8 @@ unsigned long test_dict_hash_func(void *privdata, const void *key){
 }
 
 void test_dict(){
+    printDivLine("test_dict");
+
     dictFunc df;
     dict *d;
     dictEntry *de;
@@ -151,13 +154,18 @@ void test_dict(){
     dictFree(d);
 }
 
+static void test_btree(){
+    printDivLine("test_btree");
+
+    printf("%zu\n", sizeof(bt_setsEntry));
+}
+
 int main(int argc, char **argv){
     test_dict();
     test_skiplist();
     test_dllist();
     test_hash();
-
-    printf("%zu\n", sizeof(dictEntry));
+    test_btree();
 
     return 0;
 }
