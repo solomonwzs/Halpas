@@ -47,9 +47,9 @@
     (_node_)->value.si=(_si_); \
 } while(0)
 
-#define dictSetPoint(_sl_, _node_, _p_) do{\
+#define skiplistSetPoint(_sl_, _node_, _p_) do{\
     (_node_)->type=SKIPLIST_NODE_TYPE_POINT; \
-    if ((_node_)->func->valdupfunc) \
+    if ((_sl_)->func->valdupfunc) \
         (_node_)->value.point=(_sl_)->func->valdupfunc((_sl_)->privdata, _p_); \
     else \
         (_node_)->value.point=(_p_);\

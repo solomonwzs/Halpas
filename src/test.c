@@ -3,23 +3,44 @@
 #include "skiplist.h"
 #include "hash.h"
 
+int test_keycmp_func(void *privdata, const void *key1, const void *key2){
+    return strcmp(key1, key2);
+}
+
 static void test_skiplist(){
-    skiplist *sl=skiplistCreate(0.5, NULL);
+    skiplistFunc slf;
+    skiplist *sl;
     skiplistNode *sln;
 
-    skiplistInsert(sl, "a", "hello");
-    skiplistInsert(sl, "e", "world");
-    skiplistInsert(sl, "w", "!");
-    skiplistInsert(sl, "b", "good");
-    skiplistInsert(sl, "d", "morning");
-    skiplistInsert(sl, "x", "apple");
-    skiplistInsert(sl, "h", "orange");
-    skiplistInsert(sl, "c", "gcc");
+    slf.keycmpfunc=test_keycmp_func;
+    slf.keyfreefunc=NULL;
+    slf.valfreefunc=NULL;
+    slf.keydupfunc=NULL;
+    slf.valdupfunc=NULL;
 
-    skiplistDelete(sl, "b");
+    sl=skiplistCreate(0.5, &slf, NULL);
+
+    //skiplistInsert(sl, "a", "hello");
+    //skiplistInsert(sl, "e", "world");
+    //skiplistInsert(sl, "w", "!");
+    //skiplistInsert(sl, "b", "good");
+    //skiplistInsert(sl, "d", "morning");
+    //skiplistInsert(sl, "x", "apple");
+    //skiplistInsert(sl, "h", "orange");
+    //skiplistInsert(sl, "c", "gcc");
+    sln=skiplistAddRaw(sl, "a"); skiplistSetPoint(sl, sln, "hello");
+    sln=skiplistAddRaw(sl, "e"); skiplistSetPoint(sl, sln, "world");
+    sln=skiplistAddRaw(sl, "w"); skiplistSetPoint(sl, sln, "!");
+    sln=skiplistAddRaw(sl, "b"); skiplistSetPoint(sl, sln, "good");
+    sln=skiplistAddRaw(sl, "d"); skiplistSetPoint(sl, sln, "morning");
+    sln=skiplistAddRaw(sl, "x"); skiplistSetPoint(sl, sln, "apple");
+    sln=skiplistAddRaw(sl, "h"); skiplistSetPoint(sl, sln, "orange");
+    sln=skiplistAddRaw(sl, "c"); skiplistSetPoint(sl, sln, "gcc");
+
+    skiplistDelete(sl, "b", 0);
 
     sln=skiplistSearch(sl, "h");
-    printf("%s\n", (char *)sln->value);
+    printf("%s\n", (char *)sln->value.point);
 
     skiplistFree(sl);
 }
@@ -88,10 +109,6 @@ unsigned long test_dict_hash_func(void *privdata, const void *key){
     return h[0];
 }
 
-int test_dict_keycmp_func(void *privdata, const void *key1, const void *key2){
-    return strcmp(key1, key2);
-}
-
 void test_dict(){
     dictFunc df;
     dict *d;
@@ -100,7 +117,7 @@ void test_dict(){
     char *s[6]={"hello", "world", "!", "test", "dict", "func"};
 
     df.hashfunc=test_dict_hash_func;
-    df.keycmpfunc=test_dict_keycmp_func;
+    df.keycmpfunc=test_keycmp_func;
     df.keydupfunc=NULL;
     df.keyfreefunc=NULL;
     df.valdupfunc=NULL;
