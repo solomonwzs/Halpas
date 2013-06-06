@@ -120,7 +120,7 @@ dictEntry *dictAddRaw(dict *d, void *key){
         dictHashTable *dht0=&(d->ht[0]);
 
         de->next=dht0->table[hashIndex];
-        de->type=DICT_ENTRY_TYPE_UNKNOWN;
+        de->value.type=ENTRY_TYPE_UNKNOWN;
         dht0->table[hashIndex]=de;
         dictSetKey(d, de, key);
         ++dht0->used;
@@ -134,7 +134,7 @@ dictEntry *dictAddRaw(dict *d, void *key){
     return de;
 }
 
-dict *dictCreate(dictFunc *dictfunc, void *privdata, unsigned long size){
+dict *dictCreate(entryFunc *dictfunc, void *privdata, unsigned long size){
     dict *d=malloc(sizeof(dict));
 
     d->func=dictfunc;

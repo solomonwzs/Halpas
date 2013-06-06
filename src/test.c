@@ -13,17 +13,12 @@ int test_keycmp_func(void *privdata, const void *key1, const void *key2){
 static void test_skiplist(){
     printDivLine("test_skiplist");
 
-    skiplistFunc slf;
+    entryFunc ef;
     skiplist *sl;
     skiplistNode *sln;
 
-    slf.keycmpfunc=test_keycmp_func;
-    slf.keyfreefunc=NULL;
-    slf.valfreefunc=NULL;
-    slf.keydupfunc=NULL;
-    slf.valdupfunc=NULL;
-
-    sl=skiplistCreate(0.5, &slf, NULL);
+    setEntryFunc(ef, NULL, test_keycmp_func, NULL, NULL, NULL, NULL);
+    sl=skiplistCreate(0.5, &ef, NULL);
 
     sln=skiplistAddRaw(sl, "a"); skiplistSetPoint(sl, sln, "hello");
     sln=skiplistAddRaw(sl, "e"); skiplistSetPoint(sl, sln, "world");
@@ -37,7 +32,7 @@ static void test_skiplist(){
     skiplistDelete(sl, "b", 0);
 
     sln=skiplistSearch(sl, "h");
-    printf("%s\n", (char *)sln->value.point);
+    printf("%s\n", (char *)skiplistNodePoint(sln));
 
     skiplistFree(sl);
 }
@@ -113,19 +108,15 @@ unsigned long test_dict_hash_func(void *privdata, const void *key){
 void test_dict(){
     printDivLine("test_dict");
 
-    dictFunc df;
+    entryFunc ef;
     dict *d;
     dictEntry *de;
     int i;
     char *s[6]={"hello", "world", "!", "test", "dict", "func"};
 
-    df.hashfunc=test_dict_hash_func;
-    df.keycmpfunc=test_keycmp_func;
-    df.keydupfunc=NULL;
-    df.keyfreefunc=NULL;
-    df.valdupfunc=NULL;
-    df.valfreefunc=NULL;
-    d=dictCreate(&df, NULL, 2);
+    setEntryFunc(ef, test_dict_hash_func, test_keycmp_func, NULL, NULL, NULL,
+            NULL);
+    d=dictCreate(&ef, NULL, 2);
 
     de=dictAddRaw(d, "hello"); dictSetUnsigedInteger(de, 0);
     de=dictAddRaw(d, "world"); dictSetUnsigedInteger(de, 1);
@@ -139,11 +130,11 @@ void test_dict(){
     for (i=0; i<6; ++i){
         de=dictFind(d, s[i]);
         if (de){
-            if (de->type==DICT_ENTRY_TYPE_UINT){
-                printf("%s\t%li\n", s[i], de->value.ui);
+            if (dictEntryType(de)==ENTRY_TYPE_UINT){
+                printf("%s\t%li\n", s[i], dictEntryUInt(de));
             }
-            else if (de->type==DICT_ENTRY_TYPE_POINT){
-                printf("%s\t%s\n", s[i], (char *)de->value.point);
+            else if (dictEntryType(de)==ENTRY_TYPE_POINT){
+                printf("%s\t%s\n", s[i], (char *)dictEntryPoint(de));
             }
         }
         else{

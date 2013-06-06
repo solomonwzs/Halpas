@@ -24,12 +24,12 @@ static skiplistNode *_skiplistCreateNode(int level, void *key){
     skiplistNode *sln=malloc(sizeof(skiplistNode)+level*sizeof(skiplistNode *));
     if (sln){
         sln->key=key;
-        sln->type=SKIPLIST_NODE_TYPE_UNKNOWN;
+        sln->value.type=ENTRY_TYPE_UNKNOWN;
     }
     return sln;
 }
 
-skiplist *skiplistCreate(float p, skiplistFunc *func, void *privdata){
+skiplist *skiplistCreate(float p, entryFunc *func, void *privdata){
     skiplist *sl=malloc(sizeof(skiplist));
     int i;
 
