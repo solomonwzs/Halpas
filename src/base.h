@@ -9,6 +9,9 @@
 #define ENTRY_TYPE_UINT 0x02
 #define ENTRY_TYPE_INT 0x03
 #define ENTRY_TYPE_FLOAT 0x04
+#define ENTRY_TYPE_NULL 0x05
+#define ENTRY_TYPE_MIN 0x06
+#define ENTRY_TYPE_MAX 0x07
 
 #define setEntryFunc(_f_, _h_, _kc_, _kf_, _vf_, _kd_, _vd_) do{\
     (_f_).hashfunc=(_h_); \

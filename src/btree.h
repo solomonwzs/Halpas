@@ -4,6 +4,9 @@
 #include <stdio.h>
 #include "base.h"
 
+#define BTREE_OPT_ERR 0
+#define BTREE_OPT_OK 1
+
 typedef struct btreeKP{
     void *key;
     entryFunc value;
@@ -16,15 +19,16 @@ typedef struct btreeNode{
 
 typedef struct bt_setsEntry{
     entryValue value;
-    struct bt_setsEntry *next;
+    struct bt_setsEntry *next, *prev;
     struct bt_setsNode *child;
 } bt_setsEntry;
 
 typedef struct bt_setsNode{
     unsigned int size;
     struct setsNode *parent;
-    struct bt_setsEntry *lastEntry;
+    struct bt_setsEntry *midEntry;
     struct bt_setsEntry *entry;
+    struct bt_setsNode *lastChild;
 } bt_setsNode;
 
 typedef struct bt_sets{

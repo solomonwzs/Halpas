@@ -149,6 +149,7 @@ static void test_btree(){
     printDivLine("test_btree");
 
     printf("%zu\n", sizeof(bt_setsEntry));
+    printf("%zu\n", sizeof(uint64_t));
 }
 
 int main(int argc, char **argv){
