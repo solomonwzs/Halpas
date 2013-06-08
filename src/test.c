@@ -145,18 +145,40 @@ void test_dict(){
     dictFree(d);
 }
 
+int test_cmp_func(void *privdata, const void *ev1,
+        const void *ev2){
+    return strcmp(((entryValue *)ev1)->val.point,
+            ((entryValue *)ev2)->val.point);
+}
+
 static void test_btree(){
     printDivLine("test_btree");
 
-    printf("%zu\n", sizeof(bt_setsEntry));
-    printf("%zu\n", sizeof(uint64_t));
+    entryFunc ef;
+    entryValue ev;
+    bt_sets *bts;
+    int i;
+    char *str[20]={"C", "N", "G", "A", "H", "E", "K", "Q", "M", "F", "W", "L",
+        "T", "Z", "D", "P", "R", "X", "Y", "S"};
+
+    setEntryFunc(ef, NULL, test_cmp_func, NULL, NULL, NULL,
+            NULL);
+    bts=bt_setsCreate(4, &ef, NULL);
+
+    ev.type=ENTRY_TYPE_POINT;
+    for (i=0; i<20; ++i){
+        ev.val.point=str[i];
+        bt_setsAdd(bts, ev);
+    }
+
+    bt_setsFree(bts);
 }
 
 int main(int argc, char **argv){
-    test_dict();
-    test_skiplist();
-    test_dllist();
-    test_hash();
+    //test_dict();
+    //test_skiplist();
+    //test_dllist();
+    //test_hash();
     test_btree();
 
     return 0;
