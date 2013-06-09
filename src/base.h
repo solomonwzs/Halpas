@@ -22,6 +22,15 @@
     (_f_).valdupfunc=(_vd_); \
 } while(0)
 
+#define printEntryValue(_ev_) (\
+    ((_ev_).type==ENTRY_TYPE_UINT || (_ev_).type==ENTRY_TYPE_INT)?\
+        printf(".%li.", (_ev_).val.ui):(\
+            (_ev_).type==ENTRY_TYPE_FLOAT?\
+                printf(".%f.", (_ev_).val.f):(\
+                    (_ev_).type==ENTRY_TYPE_POINT?\
+                        printf(".%s.", (_ev_).val.point):\
+                        printf("unknown"))))
+
 typedef struct entryValue{
     int type;
     union{

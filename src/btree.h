@@ -26,8 +26,8 @@ typedef struct bt_setsEntry{
 typedef struct bt_setsNode{
     unsigned int size;
     struct bt_setsNode *parent;
-    struct bt_setsEntry *entry;
-    struct bt_setsNode *lastChild;
+    struct bt_setsEntry *entry, *pEntry;
+    //struct bt_setsNode *lastChild;
 } bt_setsNode;
 
 typedef struct bt_sets{
@@ -42,5 +42,6 @@ extern bt_sets *bt_setsCreate(unsigned int keyNum, entryFunc *func,
         void *privdata);
 extern bt_setsEntry *bt_setsAdd(bt_sets *bts, entryValue ev);
 extern void bt_setsFree(bt_sets *bts);
+extern void bt_setsTraversalPrint();
 
 #endif
