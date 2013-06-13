@@ -6,15 +6,21 @@
 #define _prev(_e_) \
     (_e_)=(_e_)->prev
 
-#define _setParentChild(_e_, _n_) do{\
-    (_e_)->child=(_n_); \
-    (_n_)->pEntry=(_e_); \
+#define _minEntryNum(_s_) \
+    (ceil((_s_)->keyNum/2)-1)
+
+#define _setChild(_e_, _n_) do{\
+    typeof((_e_)->child) __n_=(_n_); \
+    (_e_)->child=(__n_); \
+    if (__n_) {\
+        (__n_)->pEntry=(_e_); \
+    }\
 } while(0)
 
 #define _entryCompare(_bts_, _e1_, _e2_) \
     ((_e2_).type==ENTRY_TYPE_MAX? \
-        -1: \
-        (_bts_)->func->keycmpfunc((_bts_)->privdata, &(_e1_), &(_e2_)))
+     -1: \
+     (_bts_)->func->keycmpfunc((_bts_)->privdata, &(_e1_), &(_e2_)))
 
 #define _getMidEntry(_i_, _n_, _mid_) \
     for ((_i_)=0, (_mid_)=(_n_)->entry; \
@@ -39,10 +45,15 @@
     (_curr_)->next=(_e_); \
 } while(0)
 
-#define _endEntryCreate(_e_) do{\
+#define _creatEndEntry(_e_) do{\
     (_e_)=malloc(sizeof(bt_setsEntry)); \
     (_e_)->next=NULL; \
     (_e_)->value.type=ENTRY_TYPE_MAX; \
+} while(0)
+
+#define _freeEntry(_bts_, _e_) do{\
+    if ((_bts_)->func->valfreefunc && (_e_)->value.type==ENTRY_TYPE_POINT) \
+        (_bts_)->func->valfreefunc((_bts_)->privdata, (_e_)->value.val.point);\
 } while(0)
 
 void bt_setsTraversalPrint(bt_setsNode *btsn){
@@ -72,14 +83,47 @@ static void _bt_setsFreeNode(bt_setsNode *btsn){
     free(btsn);
 }
 
+static int _bt_setsFind(const bt_sets *bts, const entryValue ev,
+        bt_setsNode **btsn, bt_setsEntry **btse){
+    int comp;
+
+    *btsn=bts->root;
+    *btse=(*btsn)->entry;
+    while (*btsn){
+        while (*btse){
+            comp=_entryCompare(bts, ev, (*btse)->value);
+            if (comp==0){
+                return BTREE_OPT_OK;
+            }
+            else if (comp<0){
+                *btsn=(*btse)->child;
+                *btse=(*btsn)->entry;
+            }
+            else{
+                _next(*btse);
+            }
+        }
+    }
+    return BTREE_OPT_ERR;
+}
+
+void bt_setsDel(bt_sets *bts, entryValue ev, const int freeval){
+    bt_setsNode *btsn;
+    bt_setsEntry *btse;
+
+    if (_bt_setsFind(bts, ev, &btsn, &btse)==BTREE_OPT_OK){
+        printEntryValue(btsn->entry->value);
+    }
+}
+
 bt_sets *bt_setsCreate(unsigned int keyNum, entryFunc *func, void *privdata){
     bt_sets *bts=malloc(sizeof(bt_sets));
     bt_setsNode *btsn=malloc(sizeof(bt_setsNode));
     bt_setsEntry *btse;
 
-    _endEntryCreate(btse);
+    _creatEndEntry(btse);
     btse->prev=NULL;
-    btse->child=NULL;
+    _setChild(btse, NULL);
 
     btsn->size=0;
     btsn->parent=NULL;
@@ -130,9 +174,9 @@ static int _bt_setsNodeSplit(bt_setsNode *btsn, bt_setsEntry **me, bt_setsNode *
 
         (*nn)->entry=btsn->entry;
         (*nn)->size=size/2;
-        _endEntryCreate(btse);
+        _creatEndEntry(btse);
         btse->prev=(*me)->prev;
-        btse->child=(*me)->child;
+        _setChild(btse, (*me)->child);
         (*me)->prev->next=btse;
 
         btsn->entry=(*me)->next;
@@ -140,7 +184,7 @@ static int _bt_setsNodeSplit(bt_setsNode *btsn, bt_setsEntry **me, bt_setsNode *
 
         if ((*me)->next) (*me)->next->prev=NULL;
 
-        (*me)->child=(*nn);
+        _setChild(*me, *nn);
 
         return BTREE_OPT_OK;
     }
@@ -174,7 +218,7 @@ bt_setsEntry *bt_setsAdd(bt_sets *bts, entryValue ev){
     if (btse){
         ++bts->size;
         btse->value=ev;
-        btse->child=NULL;
+        _setChild(btse, NULL);
         me=btse;
         while (_bt_setsAddEntryToNode(bts, btsn, me)==BTREE_OPT_OK){
             if (btsn->size>bts->keyNum){
@@ -185,16 +229,15 @@ bt_setsEntry *bt_setsAdd(bt_sets *bts, entryValue ev){
 
                     parent=malloc(sizeof(bt_setsNode));
                     parent->size=1;
-                    //parent->lastChild=btsn;
                     parent->parent=NULL;
                     parent->entry=me;
 
-                    _endEntryCreate(ne);
+                    _creatEndEntry(ne);
                     ne->prev=me;
-                    ne->child=btsn;
+                    _setChild(ne, btsn);
 
                     me->next=ne;
-                    me->child=nn;
+                    _setChild(me, nn);
                     me->prev=NULL;
 
                     bts->root=parent;

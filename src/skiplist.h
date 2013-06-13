@@ -75,7 +75,7 @@ extern skiplist *skiplistCreate(float p, entryFunc *func, void *privdata);
 extern void skiplistFree(skiplist *sl);
 extern skiplistNode *skiplistAddRaw(skiplist *sl, void *key);
 extern skiplistNode *skiplistFind(skiplist *sl, void *key);
-extern int skiplistDelete(skiplist *sl, void *key, int freeval);
+extern int skiplistDelete(skiplist *sl, void *key, const int freeval);
 extern skiplistNode *skiplistSearch(skiplist *sl, void *key);
 
 #endif

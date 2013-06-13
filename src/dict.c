@@ -2,7 +2,6 @@
 
 #define _EXPAND_RATIO 1
 
-
 static int _dictHashTableInit(dictHashTable *ht, unsigned long size){
     ht->size=size;
     ht->used=0;
@@ -175,7 +174,7 @@ void dictFree(dict *d){
     free(d);
 }
 
-int dictDelete(dict *d, const void *key, int freeval){
+int dictDelete(dict *d, const void *key, const int freeval){
     unsigned long h;
     uint8_t i;
     dictEntry *de, **p;

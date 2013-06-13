@@ -173,6 +173,10 @@ static void test_btree(){
         printf("\n");
     }
 
+    ev.val.point="Y";
+    bt_setsDel(bts, ev);
+    printf("\n");
+
     bt_setsFree(bts);
 }
 

@@ -2,7 +2,7 @@
 
 C 		=gcc
 SRC 	=src/*.c
-CFLAGS 	=-Wall -g -O
+CFLAGS 	=-Wall -g -O3
 OUTPUT 	=./bin/test
 LIB 	=-lm
 

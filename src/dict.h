@@ -86,6 +86,6 @@ extern dict *dictCreate(entryFunc *dictfunc, void *privdata, unsigned long size)
 extern void dictFree(dict *d);
 extern dictEntry *dictAddRaw(dict *d, void *key);
 extern dictEntry *dictFind(dict *d, const void *key);
-extern int dictDelete(dict *d, const void *key, int freeval);
+extern int dictDelete(dict *d, const void *key, const int freeval);
 
 #endif

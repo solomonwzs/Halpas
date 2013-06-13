@@ -123,7 +123,7 @@ skiplistNode *skiplistSearch(skiplist *sl, void *key){
     }
 }
 
-int skiplistDelete(skiplist *sl, void *key, int freeval){
+int skiplistDelete(skiplist *sl, void *key, const int freeval){
     skiplistNode *x, *update[SKIPLIST_MAXLEVEL];
     int i;
 
