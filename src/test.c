@@ -166,7 +166,7 @@ static void test_btree(){
     bts=bt_setsCreate(4, &ef, NULL);
 
     ev.type=ENTRY_TYPE_POINT;
-    for (i=0; i<17; ++i){
+    for (i=0; i<20; ++i){
         ev.val.point=str[i];
         bt_setsAdd(bts, ev);
         bt_setsTraversalPrint(bts->root);

@@ -53,7 +53,9 @@ void bt_setsTraversalPrint(bt_setsNode *btsn){
         if (btse->child){
             bt_setsTraversalPrint(btse->child);
         }
-        printEntryValue(btse->value);
+        if (btse->value.type!=ENTRY_TYPE_MAX){
+            printEntryValue(btse->value);
+        }
         _next(btse);
     }
     printf(" }");
@@ -94,52 +96,23 @@ bt_sets *bt_setsCreate(unsigned int keyNum, entryFunc *func, void *privdata){
 
 static int _bt_setsAddEntryToNode(bt_sets *bts, bt_setsNode *btsn,
         bt_setsEntry *btse){
-    if (btsn->size==0){
-        btse->prev=NULL;
-        btse->next=NULL;
-        btsn->entry=btse;
+    bt_setsEntry *p;
+    int comp, i;
+    entryValue ev=btse->value;
+
+    for (p=btsn->entry; p; _next(p)){
+        comp=_entryCompare(bts, ev, p->value);
+        if (comp==0){
+            return BTREE_OPT_ERR;
+        }
+        else if (comp<0){
+            break;
+        }
     }
-    else{
-        bt_setsEntry *p;
-        int comp, i;
-        entryValue ev=btse->value;
+    _setPrevEntry(p, btse);
 
-        for (p=btsn->entry; p && p->next; _next(p)){
-            comp=_entryCompare(bts, ev, p->value);
-            if (comp==0){
-                return BTREE_OPT_ERR;
-            }
-            else if (comp<0){
-                break;
-            }
-        }
-
-        if (p->next){
-            _setPrevEntry(p, btse);
-        }
-        else{
-            comp=_entryCompare(bts, ev, p->value);
-            if (comp==0){
-                return BTREE_OPT_ERR;
-            }
-            else if (comp<0){
-                _setPrevEntry(p, btse);
-            }
-            else{
-                btse->prev=p;
-                btse->next=NULL;
-                p->next=btse;
-            }
-        }
-
-        while (btsn->entry->prev){
-            _prev(btsn->entry);
-        }
-
-        //for (p=btsn->entry; p; _next(p)){
-        //    printf("%s ", (char *)p->value.val.point);
-        //}
-        //printf("\n");
+    while (btsn->entry->prev){
+        _prev(btsn->entry);
     }
     ++btsn->size;
 
@@ -217,6 +190,7 @@ bt_setsEntry *bt_setsAdd(bt_sets *bts, entryValue ev){
                     parent->entry=me;
 
                     _endEntryCreate(ne);
+                    ne->prev=me;
                     ne->child=btsn;
 
                     me->next=ne;
