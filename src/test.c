@@ -174,17 +174,17 @@ static void test_btree(){
     }
 
     ev.val.point="Y";
-    bt_setsDel(bts, ev);
+    bt_setsDel(bts, ev, 0);
     printf("\n");
 
     bt_setsFree(bts);
 }
 
 int main(int argc, char **argv){
-    //test_dict();
-    //test_skiplist();
-    //test_dllist();
-    //test_hash();
+    test_dict();
+    test_skiplist();
+    test_dllist();
+    test_hash();
     test_btree();
 
     return 0;

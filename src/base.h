@@ -28,7 +28,7 @@
             (_ev_).type==ENTRY_TYPE_FLOAT?\
                 printf(".%f.", (_ev_).val.f):(\
                     (_ev_).type==ENTRY_TYPE_POINT?\
-                        printf(".%s.", (_ev_).val.point):\
+                        printf(".%s.", (char *)(_ev_).val.point):\
                         printf("unknown"))))
 
 typedef struct entryValue{

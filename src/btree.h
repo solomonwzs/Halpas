@@ -1,6 +1,7 @@
 #ifndef _BTREE_H
 #define _BTREE_H
 
+#include <math.h>
 #include <stdio.h>
 #include "base.h"
 
@@ -26,7 +27,7 @@ typedef struct bt_setsEntry{
 typedef struct bt_setsNode{
     unsigned int size;
     struct bt_setsNode *parent;
-    struct bt_setsEntry *entry, *pEntry;
+    struct bt_setsEntry *head, *last, *pEntry;
 } bt_setsNode;
 
 typedef struct bt_sets{
