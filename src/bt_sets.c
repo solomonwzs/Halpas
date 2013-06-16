@@ -9,14 +9,6 @@
 #define _isRoot(_n_) \
     ((_n_)->parent==NULL)
 
-#define _removeEntry(_n_, _e_, _cn_) do{\
-    if ((_e_)==(_n_)->head) _next((_n_)->head); \
-    if ((_e_)->prev && (_e_)->next) (_e_)->prev->next=(_e_)->next; \
-    (_e_)->next->prev=(_e_)->prev; \
-    --(_n_)->size; \
-    (_cn_)=(_e_)->child; \
-} while(0)
-
 #define _isLeaf(_n_) \
     ((_n_)->head->child==NULL)
 
@@ -25,6 +17,21 @@
 
 #define _rightBrother(_n_) \
     ((_n_)->pEntry && (_n_)->pEntry->next?(_n_)->pEntry->next->child:NULL)
+
+#define _removeEntry(_n_, _e_, _cn_) do{\
+    if (_isLeaf(_n_)){ \
+        if ((_e_)==(_n_)->head) _next((_n_)->head); \
+        if ((_e_)->prev && (_e_)->next) (_e_)->prev->next=(_e_)->next; \
+        (_e_)->next->prev=(_e_)->prev; \
+        --(_n_)->size; \
+        (_cn_)=NULL; \
+    } \
+    else { \
+        typeof(_e_) _last_; \
+        (_cn_)=(_e_)->child; \
+        (_last_)=(_cn_)->last->prev; \
+    } \
+} while(0)
 
 #define _minEntryNum(_s_) \
     (ceil((_s_)->keyNum/2)-1)
@@ -132,24 +139,8 @@ void bt_setsDel(bt_sets *bts, entryValue ev, const int freeval){
     bt_setsEntry *btse;
 
     if (_bt_setsFind(bts, ev, &btsn, &btse)==BTREE_OPT_OK){
-        int minSize=_minEntryNum(bts);
-        bt_setsNode *brother;
-
         _removeEntry(btsn, btse, child);
-
-        if (_isLeaf(btsn)){
-            if (btsn->size-1>=minSize){
-                if (btse->prev){
-                    btse->prev->next=btse->next;
-                }
-                btse->next->prev=btse->prev;
-                --btsn->size;
-            }
-            else{
-                brother=_leftBrother(btsn);
-                if (brother && brother->size>minSize){
-                }
-            }
+        if (!_isLeaf(btsn)){
         }
     }
 
@@ -159,7 +150,7 @@ void bt_setsDel(bt_sets *bts, entryValue ev, const int freeval){
     free(btse);
 }
 
-static void _balanceNode(bt_sets *bts, bt_setsNode *btsn){
+static void _balanceNode(bt_sets *bts, bt_setsNode *btsn, bt_setsNode *child){
 }
 
 bt_sets *bt_setsCreate(unsigned int keyNum, entryFunc *func, void *privdata){
