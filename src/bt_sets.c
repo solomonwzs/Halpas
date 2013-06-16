@@ -13,10 +13,13 @@
     ((_n_)->head->child==NULL)
 
 #define _leftBrother(_n_) \
-    ((_n_)->pEntry && (_n_)->pEntry->prev?(_n_)->pEntry->prev->child:NULL)
+    (((_n_)->pEntry && (_n_)->pEntry->prev)?(_n_)->pEntry->prev->child:NULL)
 
 #define _rightBrother(_n_) \
-    ((_n_)->pEntry && (_n_)->pEntry->next?(_n_)->pEntry->next->child:NULL)
+    (((_n_)->pEntry && (_n_)->pEntry->next)?(_n_)->pEntry->next->child:NULL)
+
+#define _rightChild(_e_) \
+    (((_e_)->next && (_e_)->next->child)?(_e_)->next->child:NULL)
 
 #define _removeEntry(_n_, _e_, _cn_) do{\
     if (_isLeaf(_n_)){ \
@@ -27,9 +30,13 @@
         (_cn_)=NULL; \
     } \
     else { \
-        typeof(_e_) _last_; \
-        (_cn_)=(_e_)->child; \
-        (_last_)=(_cn_)->last->prev; \
+        typeof(_e_) __e_; \
+        (_cn_)=_rightChild(_e_); \
+        if ((_cn_) && (_cn_)->size>(_e_)->child->size) { \
+        } \
+        else { \
+            (_cn_)=(_e_)->child; \
+        } \
     } \
 } while(0)
 
