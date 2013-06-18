@@ -4,6 +4,8 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+#define FORCE_INLINE static inline __attribute__((always_inline))
+
 #define ENTRY_TYPE_UNKNOWN 0x00
 #define ENTRY_TYPE_POINT 0x01
 #define ENTRY_TYPE_UINT 0x02
@@ -20,6 +22,12 @@
     (_f_).valfreefunc=(_vf_); \
     (_f_).keydupfunc=(_kd_); \
     (_f_).valdupfunc=(_vd_); \
+} while(0)
+
+#define swap(_a_, _b_) do{\
+    typeof(_a_) _c_=(_a_); \
+    (_a_)=(_b_); \
+    (_b_)=(_c_); \
 } while(0)
 
 #define printEntryValue(_ev_) (\

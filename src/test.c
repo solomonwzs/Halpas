@@ -163,7 +163,7 @@ static void test_btree(){
 
     setEntryFunc(ef, NULL, test_cmp_func, NULL, NULL, NULL,
             NULL);
-    bts=bt_setsCreate(4, &ef, NULL);
+    bts=bt_setsCreate(3, &ef, NULL);
 
     ev.type=ENTRY_TYPE_POINT;
     for (i=0; i<20; ++i){
@@ -173,9 +173,14 @@ static void test_btree(){
         printf("\n");
     }
 
-    ev.val.point="Y";
-    bt_setsDel(bts, ev, 0);
-    printf("\n");
+    for (i=0; i<20; ++i){
+        //printf("%s ", str[i]);
+        //fflush(stdout);
+        ev.val.point=str[i];
+        bt_setsDel(bts, ev, 0);
+        bt_setsTraversalPrint(bts->root);
+        printf("\n");
+    }
 
     bt_setsFree(bts);
 }

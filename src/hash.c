@@ -1,42 +1,32 @@
 #include "hash.h"
 
-#define FORCE_INLINE static inline __attribute__((always_inline))
+#define _rotl32(_i_, _rl_) \
+    (((_i_)<<(_rl_))|((_i_)>>(32-(_rl_))))
 
-static inline uint32_t _rotl32(uint32_t i, int8_t rl){
-    return  (i<<rl)|(i>>(32-rl));
-}
+#define _rotl64(_i_, _rl_) \
+    (((_i_)<<(_rl_))|((_i_)>>(64-(_rl_))))
 
-static inline uint64_t _rotl64(uint64_t i, int8_t rl){
-    return  (i<<rl)|(i>>(64-rl));
-}
+#define _getblock32(_p_, _i_) \
+    ((_p_)[(_i_)])
 
-FORCE_INLINE uint32_t _getblock32(const uint32_t *p, int i){
-    return p[i];
-}
+#define _getblock64(_p_, _i_) \
+    ((_p_)[(_i_)])
 
-FORCE_INLINE uint64_t _getblock64(const uint64_t *p, int i){
-    return p[i];
-}
+#define _fmix32(_h_) do{\
+    (_h_)^=(_h_)>>16; \
+    (_h_)*=0x85ebca6b; \
+    (_h_)^=(_h_)>>13; \
+    (_h_)*=0xc2b2ae35; \
+    (_h_)^=(_h_)>>16; \
+} while(0)
 
-FORCE_INLINE uint32_t _fmix32(uint32_t h){
-    h^=h>>16;
-    h*=0x85ebca6b;
-    h^=h>>13;
-    h*=0xc2b2ae35;
-    h^=h>>16;
-
-    return h;
-}
-
-FORCE_INLINE uint64_t _fmix64(uint64_t h){
-    h^=h>>33;
-    h*=0xff51afd7ed558ccd;
-    h^=h>>33;
-    h*=0xc4ceb9fe1a85ec53;
-    h^=h>>33;
-
-    return h;
-}
+#define _fmix64(_h_) do{\
+    (_h_)^=(_h_)>>33; \
+    (_h_)*=0xff51afd7ed558ccd; \
+    (_h_)^=(_h_)>>33; \
+    (_h_)*=0xc4ceb9fe1a85ec53; \
+    (_h_)^=(_h_)>>33; \
+} while(0)
 
 void murmurHash_x86_32(const void *key, int len, uint32_t seed, void *out){
     const uint8_t *data=(const uint8_t *)key;
@@ -72,7 +62,7 @@ void murmurHash_x86_32(const void *key, int len, uint32_t seed, void *out){
     }
 
     h1^=len;
-    h1=_fmix32(h1);
+    _fmix32(h1);
     *(uint32_t *)out=h1;
 }
 
@@ -140,7 +130,7 @@ void murmurHash_x86_128(const void *key, int len, uint32_t seed, void *out){
     h[2]+=h[0];
     h[3]+=h[0];
 
-    for (i=0; i<4; ++i) h[i]=_fmix32(h[i]);
+    for (i=0; i<4; ++i) _fmix32(h[i]);
 
     h[0]+=(h[1]+h[2]+h[3]);
     h[1]+=h[0];
@@ -202,7 +192,7 @@ void murmurHash_x64_128(const void *key, int len, uint32_t seed, void *out){
 
     h1^=len; h2^=len;
     h1+=h2; h2+=h1;
-    h1=_fmix64(h1); h2=_fmix64(h2);
+    _fmix64(h1); _fmix64(h2);
     h1+=h2; h2+=h1;
 
     ((uint64_t*)out)[0]=h1;
