@@ -158,29 +158,27 @@ static void test_btree(){
     entryValue ev;
     bt_sets *bts;
     int i;
-    char *str[20]={"C", "N", "G", "A", "H", "E", "K", "Q", "M", "F", "W", "L",
-        "T", "Z", "D", "P", "R", "X", "Y", "S"};
+    char *str[26]={"C", "N", "G", "A", "H", "E", "K", "Q", "M", "F", "W", "L",
+        "T", "Z", "D", "P", "R", "X", "Y", "S", "1", "2", "9", "0", "7", "8"};
 
     setEntryFunc(ef, NULL, test_cmp_func, NULL, NULL, NULL,
             NULL);
     bts=bt_setsCreate(3, &ef, NULL);
 
     ev.type=ENTRY_TYPE_POINT;
-    for (i=0; i<20; ++i){
+    for (i=0; i<26; ++i){
         ev.val.point=str[i];
         bt_setsAdd(bts, ev);
         bt_setsTraversalPrint(bts->root);
         printf("\n");
     }
 
-    for (i=0; i<20; ++i){
-        //printf("%s ", str[i]);
-        //fflush(stdout);
-        ev.val.point=str[i];
-        bt_setsDel(bts, ev, 0);
-        bt_setsTraversalPrint(bts->root);
-        printf("\n");
-    }
+    //for (i=0; i<26; ++i){
+    //    ev.val.point=str[i];
+    //    bt_setsDel(bts, ev, 0);
+    //    bt_setsTraversalPrint(bts->root);
+    //    printf("\n");
+    //}
 
     bt_setsFree(bts);
 }

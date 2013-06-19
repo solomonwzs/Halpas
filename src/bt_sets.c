@@ -15,6 +15,27 @@
 #define _isLeaf(_n_) \
     ((_n_)->head->child==NULL)
 
+#define _isHead(_e_) \
+    ((_e_)->prev==NULL)
+
+#define _checkHead(_n_, _e_) do{\
+    if (_isHead(_e_)){\
+        _next((_n_)->head); \
+        (_n_)->head->prev=NULL; \
+    }\
+} while(0)
+
+#define _checkRoot(_s_, _n_) do{\
+    if (_isRoot(_n_) && (_n_)->size==0){\
+        (_s_)->root=(_n_)->last->child; \
+        (_s_)->root->parent=NULL; \
+        (_s_)->root->pEntry=NULL; \
+        --(_s_)->height; \
+        free((_n_)->last); \
+        free(_n_); \
+    }\
+} while(0)
+
 #define _leftBrother(_n_) \
     (((_n_)->pEntry && (_n_)->pEntry->prev)?(_n_)->pEntry->prev->child:NULL)
 
@@ -83,7 +104,7 @@ FORCE_INLINE void _bt_setsRotateRight(bt_setsNode *ln){
     last->prev=NULL;
     _linkEntries(last, rn->head);
     rn->head=last;
-    swap(btse->prev->value, last->value);
+    swap(btse->value, last->value);
 
     --ln->size;
     ++rn->size;
@@ -94,6 +115,7 @@ FORCE_INLINE void _bt_setsRotateLeft(bt_setsNode *rn){
     bt_setsNode *ln=_leftBrother(rn);
     bt_setsEntry *btse=ln->pEntry;
 
+    _next(rn->head);
     _removeEntry(head);
     _linkEntries(ln->last->prev, head);
     _linkEntries(head, ln->last);
@@ -159,10 +181,7 @@ static void _bt_setsNodeMerger(bt_setsNode *left, bt_setsEntry *btse,
     _linkEntries(last, btse);
     _linkEntries(btse, right->head);
 
-    while (right->head->prev){
-        _prev(right->head);
-    }
-
+    right->head=left->head;
     right->size+=(left->size+1);
 
     free(left->last);
@@ -172,38 +191,9 @@ static void _bt_setsNodeMerger(bt_setsNode *left, bt_setsEntry *btse,
 static bt_setsEntry *_bt_setsDelEntry(bt_sets *bts, bt_setsNode *btsn,
         bt_setsEntry *btse, const unsigned int minSize){
     if (_isLeaf(btsn)){
-        if (btsn->size>minSize){
-            _removeEntry(btse);
-            --btsn->size;
-        }
-        else{
-            bt_setsNode *lb=_leftBrother(btsn);
-            bt_setsNode *rb=_rightBrother(btsn);
-
-            if (lb && lb->size>minSize){
-                _bt_setsRotateRight(lb);
-                _removeEntry(btse);
-                --lb->size;
-            }
-            else if (rb && rb->size>minSize){
-                _bt_setsRotateLeft(rb);
-                _removeEntry(btse);
-                --rb->size;
-            }
-            else{
-                --btsn->parent->size;
-                lb?
-                    _bt_setsNodeMerger(lb, lb->pEntry, btsn):
-                    _bt_setsNodeMerger(btsn, btsn->pEntry, rb);
-
-                if (_isRoot(btsn) && btsn->parent->size==0){
-                    bts->root=lb?btsn:rb;
-                    --bts->height;
-                    free(btsn->parent->last);
-                    free(btsn->parent);
-                }
-            }
-        }
+        _checkHead(btsn, btse);
+        _removeEntry(btse);
+        --btsn->size;
         return btse;
     }
     else{
@@ -219,8 +209,11 @@ static bt_setsEntry *_bt_setsDelEntry(bt_sets *bts, bt_setsNode *btsn,
         }
         else{
             bt_setsNode *rightChild=_rightChild(btse);
+            _checkHead(btsn, btse);
+            _removeEntry(btse);
             _bt_setsNodeMerger(_leftChild(btse), btse, rightChild);
             --btsn->size;
+            _checkRoot(bts, btsn);
             return _bt_setsDelEntry(bts, rightChild, btse, minSize);
         }
     }
@@ -233,6 +226,11 @@ static bt_setsEntry *_bt_setsDelValue(bt_sets *bts, const entryValue ev,
     int comp;
 
     while (1){
+        printEntryValue(btse->value);
+        printf(":");
+        bt_setsTraversalPrint(bts->root);
+        printf("\n");
+
         comp=_entryCompare(bts, ev, btse->value);
         if (comp==0){
             return _bt_setsDelEntry(bts, btsn, btse, minSize);
@@ -251,21 +249,19 @@ static bt_setsEntry *_bt_setsDelValue(bt_sets *bts, const entryValue ev,
                 }
                 else{
                     if (lb){
-                        _bt_setsNodeMerger(lb, btse->prev, child);
-                        _next(btse);
+                        bt_setsEntry *mid=btse->prev;
+                        _checkHead(btsn, mid);
+                        _bt_setsNodeMerger(lb, mid, child);
+                        btse=mid->next;
                     }
                     else{
+                        _checkHead(btsn, btse);
                         _bt_setsNodeMerger(child, btse, rb);
                         btse=rb->head;
                     }
                     --btsn->size;
-
-                    if (_isRoot(btsn) && btsn->size==0){
-                        bts->root=lb?child:rb;
-                        --bts->height;
-                        free(btsn->last);
-                        free(btsn);
-                    }
+                    _checkRoot(bts, btsn);
+                    btsn=lb?child:rb;
 
                     continue;
                 }
@@ -369,9 +365,8 @@ static int _bt_setsNodeSplit(bt_setsNode *btsn, bt_setsEntry **me, bt_setsNode *
         (*nn)->last=btse;
 
         btsn->head=(*me)->next;
+        btsn->head->prev=NULL;
         btsn->size=size-size/2-1;
-
-        if ((*me)->next) (*me)->next->prev=NULL;
 
         _setChild(*me, *nn);
 
@@ -427,7 +422,7 @@ bt_setsEntry *bt_setsAdd(bt_sets *bts, entryValue ev){
                     parent->last=ne;
 
                     me->next=ne;
-                    _setChild(me, nn);
+                    //_setChild(me, nn);
                     me->prev=NULL;
 
                     bts->root=parent;
