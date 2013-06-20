@@ -54,11 +54,12 @@
 #define _maxEntryNum(_s_) \
     ((_s_)->d*2-2)
 
-#define _setChild(_e_, _n_) do{\
+#define _setChild(_p_, _e_, _n_) do{\
     typeof((_e_)->child) __n_=(_n_); \
     (_e_)->child=(__n_); \
     if (__n_) {\
         (__n_)->pEntry=(_e_); \
+        (__n_)->parent=(_p_); \
     }\
 } while(0)
 
@@ -136,6 +137,13 @@ void bt_setsTraversalPrint(bt_setsNode *btsn){
         if (btse->value.type!=ENTRY_TYPE_MAX){
             printEntryValue(btse->value);
         }
+
+        if (btse->child){
+            printf("(");
+            printEntryValue(btse->child->head->value);
+            printf(")");
+        }
+
         _next(btse);
     }
     printf(" }");
@@ -176,10 +184,23 @@ int bt_setsFind(const bt_sets *bts, const entryValue ev){
 static void _bt_setsNodeMerger(bt_setsNode *left, bt_setsEntry *btse,
         bt_setsNode *right){
     bt_setsEntry *last=left->last->prev;
-    _setChild(btse, left->last->child);
+    _setChild(right, btse, left->last->child);
+
+    if (!_isLeaf(left)){
+        bt_setsEntry *e=left->head;
+        while (e){
+            e->child->parent=right;
+            _next(e);
+        }
+    }
 
     _linkEntries(last, btse);
     _linkEntries(btse, right->head);
+
+    printEntryValue(left->head->value);
+    printEntryValue(btse->value);
+    printEntryValue(right->head->value);
+    printf("\n");
 
     right->head=left->head;
     right->size+=(left->size+1);
@@ -252,6 +273,10 @@ static bt_setsEntry *_bt_setsDelValue(bt_sets *bts, const entryValue ev,
                         bt_setsEntry *mid=btse->prev;
                         _checkHead(btsn, mid);
                         _bt_setsNodeMerger(lb, mid, child);
+                        printEntryValue(lb->head->value);
+                        printEntryValue(mid->value);
+                        printEntryValue(child->head->value);
+                        printf("\n");
                         btse=mid->next;
                     }
                     else{
@@ -297,10 +322,11 @@ bt_sets *bt_setsCreate(unsigned int d, entryFunc *func, void *privdata){
 
     _creatEndEntry(btse);
     btse->prev=NULL;
-    _setChild(btse, NULL);
+    _setChild(btsn, btse, NULL);
 
     btsn->size=0;
     btsn->parent=NULL;
+    btsn->pEntry=NULL;
     btsn->head=btse;
     btsn->last=btse;
 
@@ -333,15 +359,9 @@ static int _bt_setsAddEntryToNode(bt_sets *bts, bt_setsNode *btsn,
     }
     else{
         btse->prev=NULL;
+        btsn->head=btse;
     }
     _linkEntries(btse, p);
-
-    while (btsn->head->prev){
-        _prev(btsn->head);
-    }
-    while (btsn->last->next){
-        _next(btsn->last);
-    }
     ++btsn->size;
 
     return BTREE_OPT_OK;
@@ -359,16 +379,21 @@ static int _bt_setsNodeSplit(bt_setsNode *btsn, bt_setsEntry **me, bt_setsNode *
         (*nn)->head=btsn->head;
         (*nn)->size=size/2;
         _creatEndEntry(btse);
-        btse->prev=(*me)->prev;
-        _setChild(btse, (*me)->child);
-        (*me)->prev->next=btse;
+        _linkEntries((*me)->prev, btse);
         (*nn)->last=btse;
+        _setChild(*nn, btse, (*me)->child);
 
         btsn->head=(*me)->next;
         btsn->head->prev=NULL;
         btsn->size=size-size/2-1;
 
-        _setChild(*me, *nn);
+        if (!_isLeaf(btsn)){
+            bt_setsEntry *e=(*nn)->head;
+            while (e){
+                e->child->parent=*nn;
+                _next(e);
+            }
+        }
 
         return BTREE_OPT_OK;
     }
@@ -400,11 +425,17 @@ bt_setsEntry *bt_setsAdd(bt_sets *bts, entryValue ev){
 
     btse=malloc(sizeof(bt_setsEntry));
     if (btse){
+        bt_setsNode *sn=NULL;
+
         ++bts->size;
         btse->value=ev;
-        _setChild(btse, NULL);
+        _setChild(btsn, btse, NULL);
         me=btse;
         while (_bt_setsAddEntryToNode(bts, btsn, me)==BTREE_OPT_OK){
+            if (sn){
+                _setChild(btsn, me->next, sn);
+                sn=NULL;
+            }
             if (btsn->size>_maxEntryNum(bts)){
                 _bt_setsNodeSplit(btsn, &me, &nn);
                 parent=btsn->parent;
@@ -418,23 +449,21 @@ bt_setsEntry *bt_setsAdd(bt_sets *bts, entryValue ev){
 
                     _creatEndEntry(ne);
                     ne->prev=me;
-                    _setChild(ne, btsn);
                     parent->last=ne;
+                    _setChild(parent, ne, btsn);
 
                     me->next=ne;
-                    //_setChild(me, nn);
                     me->prev=NULL;
+                    _setChild(parent, me, nn);
 
                     bts->root=parent;
                     ++bts->height;
 
-                    nn->parent=parent;
-                    btsn->parent=parent;
-
                     return btse;
                 }
                 else{
-                    nn->parent=parent;
+                    _setChild(parent, me, nn);
+                    sn=btsn;
                     btsn=parent;
                 }
             }

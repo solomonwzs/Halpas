@@ -173,12 +173,12 @@ static void test_btree(){
         printf("\n");
     }
 
-    //for (i=0; i<26; ++i){
-    //    ev.val.point=str[i];
-    //    bt_setsDel(bts, ev, 0);
-    //    bt_setsTraversalPrint(bts->root);
-    //    printf("\n");
-    //}
+    for (i=0; i<26; ++i){
+        ev.val.point=str[i];
+        bt_setsDel(bts, ev, 0);
+        bt_setsTraversalPrint(bts->root);
+        printf("\n");
+    }
 
     bt_setsFree(bts);
 }
