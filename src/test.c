@@ -147,8 +147,17 @@ void test_dict(){
 
 int test_cmp_func(void *privdata, const void *ev1,
         const void *ev2){
-    return strcmp(((entryValue *)ev1)->val.point,
-            ((entryValue *)ev2)->val.point);
+    //return strcmp(((entryValue *)ev1)->val.point,
+    //        ((entryValue *)ev2)->val.point);
+    uint64_t a=((entryValue *)ev1)->val.ui;
+    uint64_t b=((entryValue *)ev2)->val.ui;
+
+    if (a==b)
+        return 0;
+    else if (a>b)
+        return 1;
+    else
+        return -1;
 }
 
 static void test_btree(){
@@ -158,23 +167,26 @@ static void test_btree(){
     entryValue ev;
     bt_sets *bts;
     int i;
-    char *str[26]={"C", "N", "G", "A", "H", "E", "K", "Q", "M", "F", "W", "L",
-        "T", "Z", "D", "P", "R", "X", "Y", "S", "1", "2", "9", "0", "7", "8"};
+    char *str="1qazxsw23edcvfr45tgbnhy67ujm,ki89ol./;p0-[']=";
 
     setEntryFunc(ef, NULL, test_cmp_func, NULL, NULL, NULL,
             NULL);
     bts=bt_setsCreate(3, &ef, NULL);
 
-    ev.type=ENTRY_TYPE_POINT;
-    for (i=0; i<26; ++i){
-        ev.val.point=str[i];
+    ev.type=ENTRY_TYPE_INT;
+    for (i=0; i<strlen(str); ++i){
+        ev.val.ui=str[i];
+        printEntryValue(ev);
+        printf("\n");
         bt_setsAdd(bts, ev);
         bt_setsTraversalPrint(bts->root);
         printf("\n");
     }
 
-    for (i=0; i<26; ++i){
-        ev.val.point=str[i];
+    for (i=0; i<strlen(str); ++i){
+        ev.val.ui=str[i];
+        printEntryValue(ev);
+        printf("\n");
         bt_setsDel(bts, ev, 0);
         bt_setsTraversalPrint(bts->root);
         printf("\n");
