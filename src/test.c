@@ -167,24 +167,23 @@ static void test_btree(){
     entryValue ev;
     bt_sets *bts;
     int i;
-    char *str="1qazxsw23edcvfr45tgbnhy67ujm,ki89ol./;p0-[']=";
+    char *str1="1qazxsw23edcvfr45tgbnhy67ujm,ki89ol./;p0-[']=";
+    char *str2="0-[']=1qazxsw23edcvfr45tgbnhy67ujm,ki89ol./;p";
 
     setEntryFunc(ef, NULL, test_cmp_func, NULL, NULL, NULL,
             NULL);
     bts=bt_setsCreate(3, &ef, NULL);
 
     ev.type=ENTRY_TYPE_INT;
-    for (i=0; i<strlen(str); ++i){
-        ev.val.ui=str[i];
+    for (i=0; i<strlen(str1); ++i){
+        ev.val.ui=str1[i];
         printEntryValue(ev);
         printf("\n");
         bt_setsAdd(bts, ev);
         bt_setsTraversalPrint(bts->root);
         printf("\n");
-    }
 
-    for (i=0; i<strlen(str); ++i){
-        ev.val.ui=str[i];
+        ev.val.ui=str2[i];
         printEntryValue(ev);
         printf("\n");
         bt_setsDel(bts, ev, 0);

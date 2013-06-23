@@ -11,16 +11,6 @@
 #define BTS_ENTRY_NOT_FOUND 0
 #define BTS_ENTRY_FOUND 1
 
-typedef struct btreeKP{
-    void *key;
-    entryFunc value;
-} btreeKP;
-
-typedef struct btreeNode{
-    struct btreeNode *parent;
-    unsigned int keyNum;
-} btreeNode;
-
 typedef struct bt_setsEntry{
     entryValue value;
     struct bt_setsEntry *next, *prev;
@@ -44,7 +34,7 @@ typedef struct bt_sets{
 extern bt_sets *bt_setsCreate(unsigned int d, entryFunc *func,
         void *privdata);
 extern bt_setsEntry *bt_setsAdd(bt_sets *bts, entryValue ev);
-extern int bt_setsFind(const bt_sets *bts, const entryValue ev);
+extern bt_setsEntry *bt_setsFind(const bt_sets *bts, const entryValue ev);
 extern void bt_setsDel(bt_sets *bts, entryValue ev, const int freeval);
 extern void bt_setsFree(bt_sets *bts);
 extern void bt_setsTraversalPrint();

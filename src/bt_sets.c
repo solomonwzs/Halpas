@@ -168,7 +168,7 @@ static void _bt_setsFreeNode(bt_setsNode *btsn){
     free(btsn);
 }
 
-int bt_setsFind(const bt_sets *bts, const entryValue ev){
+bt_setsEntry *bt_setsFind(const bt_sets *bts, const entryValue ev){
     int comp;
     bt_setsNode *btsn=bts->root;
     bt_setsEntry *btse=btsn->head;
@@ -176,11 +176,11 @@ int bt_setsFind(const bt_sets *bts, const entryValue ev){
     while (btsn){
         comp=_entryCompare(bts, ev, btse->value);
         if (comp==0){
-            return BTS_ENTRY_FOUND;
+            return btse;
         }
         else if (comp<0){
             if (_isLeaf(btsn)){
-                return BTS_ENTRY_NOT_FOUND;
+                return NULL;
             }
             btsn=btse->child;
             btse=btsn->head;
@@ -189,7 +189,7 @@ int bt_setsFind(const bt_sets *bts, const entryValue ev){
             _next(btse);
         }
     }
-    return BTS_ENTRY_NOT_FOUND;
+    return NULL;
 }
 
 static void _bt_setsNodeMerger(bt_setsNode *left, bt_setsEntry *btse,
@@ -366,7 +366,7 @@ static bt_setsEntry *_bt_setsDelValue(bt_sets *bts, const entryValue ev){
 }
 
 void bt_setsDel(bt_sets *bts, entryValue ev, const int freeval){
-    if (bt_setsFind(bts, ev)==BTS_ENTRY_FOUND){
+    if (bt_setsFind(bts, ev)){
         bt_setsEntry *btse=_bt_setsDelValue(bts, ev);
 
         if (freeval!=0){
