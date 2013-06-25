@@ -471,7 +471,7 @@ bt_setsEntry *bt_setsAdd(bt_sets *bts, entryValue ev){
     bt_setsEntry *se=NULL;
 
     btsn=bts->root;
-    parents=malloc(sizeof(bt_setsNode)*bts->height);
+    parents=malloc(sizeof(bt_setsNode *)*bts->height);
     parents[0]=bts->root;
     for (i=1; i<bts->height; ++i){
         for (btse=btsn->head; btse; ){
