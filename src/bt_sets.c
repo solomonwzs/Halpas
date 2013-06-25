@@ -155,13 +155,18 @@ void bt_setsTraversalPrint(bt_setsNode *btsn){
     printf(" }");
 }
 
-static void _bt_setsFreeNode(bt_setsNode *btsn){
-    bt_setsEntry *btse=btsn->head;
+static void _bt_setsFreeNode(bt_sets *bts, bt_setsNode *btsn){
+    bt_setsEntry *btse=btsn->head, *next;
     while (btse){
         if (btse->child){
-            _bt_setsFreeNode(btse->child);
+            _bt_setsFreeNode(bts, btse->child);
         }
-        _next(btse);
+        next=btse->next;
+        if (bts){
+            _freeEntry(bts, btse);
+        }
+        free(btse);
+        btse=next;
     }
     free(btsn);
 }
@@ -447,8 +452,13 @@ static int _bt_setsNodeSplit(bt_setsNode *btsn, bt_setsEntry **me, bt_setsNode *
     return BTREE_OPT_ERR;
 }
 
-void bt_setsFree(bt_sets *bts){
-    _bt_setsFreeNode(bts->root);
+void bt_setsFree(bt_sets *bts, const int freeval){
+    if (freeval!=0){
+        _bt_setsFreeNode(bts, bts->root);
+    }
+    else{
+        _bt_setsFreeNode(NULL, bts->root);
+    }
     free(bts);
 }
 

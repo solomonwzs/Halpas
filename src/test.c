@@ -49,6 +49,7 @@ static void test_dllist(){
 
     dllistLeftPush(dl, "1");
     dllistLeftPush(dl, "2");
+    //printf(":%s\n", (char *)dl->tail->value);
     dllistRightPush(dl, "3");
     dllistLeftPush(dl, "4");
     dllistRightPull(dl);
@@ -193,7 +194,7 @@ static void test_btree(){
         printf("\n");
     }
 
-    bt_setsFree(bts);
+    bt_setsFree(bts, 0);
 }
 
 int main(int argc, char **argv){

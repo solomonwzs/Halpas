@@ -35,7 +35,7 @@ extern bt_sets *bt_setsCreate(unsigned int d, entryFunc *func,
 extern bt_setsEntry *bt_setsAdd(bt_sets *bts, entryValue ev);
 extern bt_setsEntry *bt_setsFind(const bt_sets *bts, const entryValue ev);
 extern void bt_setsDel(bt_sets *bts, entryValue ev, const int freeval);
-extern void bt_setsFree(bt_sets *bts);
+extern void bt_setsFree(bt_sets *bts, const int freeval);
 extern void bt_setsTraversalPrint();
 
 #endif

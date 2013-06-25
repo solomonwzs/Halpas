@@ -37,8 +37,9 @@ int dllistLeftPush(dllist *dl, void *value){
     }
 }
 
-dllistNode *dllistLeftPull(dllist *dl){
+void *dllistLeftPull(dllist *dl){
     dllistNode *dln=dl->head;
+    void *p=dln->value;
 
     if (dln){
         dl->head=dl->head->next;
@@ -46,7 +47,8 @@ dllistNode *dllistLeftPull(dllist *dl){
             dl->tail=NULL;
         }
     }
-    return dln;
+    free(dln);
+    return p;
 }
 
 int dllistRightPush(dllist *dl, void *value){
@@ -73,8 +75,9 @@ int dllistRightPush(dllist *dl, void *value){
     }
 }
 
-dllistNode *dllistRightPull(dllist *dl){
+void *dllistRightPull(dllist *dl){
     dllistNode *dln=dl->tail;
+    void *p=dln->value;
 
     if (dln){
         dl->tail=dl->tail->prev;
@@ -82,7 +85,8 @@ dllistNode *dllistRightPull(dllist *dl){
             dl->head=NULL;
         }
     }
-    return dln;
+    free(dln);
+    return p;
 }
 
 dllistNode *dllistIndex(dllist *dl, long index){

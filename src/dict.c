@@ -125,6 +125,7 @@ dictEntry *dictAddRaw(dict *d, void *key){
         ++dht0->used;
 
         if (!dictRehashing(d) && dht0->used/(float)dht0->size>_EXPAND_RATIO){
+            _dictFreeHashTable(d, 1);
             d->ht[1]=d->ht[0];
             _dictHashTableInit(&(d->ht[0]), d->ht[1].size*2);
             d->rehashing=1;
