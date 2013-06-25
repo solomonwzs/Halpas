@@ -19,7 +19,6 @@ typedef struct bt_setsEntry{
 
 typedef struct bt_setsNode{
     unsigned int size;
-    struct bt_setsNode *parent;
     struct bt_setsEntry *head, *last, *pEntry;
 } bt_setsNode;
 

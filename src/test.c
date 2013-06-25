@@ -177,6 +177,7 @@ static void test_btree(){
     ev.type=ENTRY_TYPE_INT;
     for (i=0; i<strlen(str1); ++i){
         ev.val.ui=str1[i];
+        printf("add: ");
         printEntryValue(ev);
         printf("\n");
         bt_setsAdd(bts, ev);
@@ -184,6 +185,7 @@ static void test_btree(){
         printf("\n");
 
         ev.val.ui=str2[i];
+        printf("del: ");
         printEntryValue(ev);
         printf("\n");
         bt_setsDel(bts, ev, 0);

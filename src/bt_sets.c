@@ -10,7 +10,7 @@
     ((_n_)->last->prev)
 
 #define _isRoot(_n_) \
-    ((_n_)->parent==NULL)
+    ((_n_)->pEntry==NULL)
 
 #define _isLeaf(_n_) \
     ((_n_)->head->child==NULL)
@@ -28,7 +28,6 @@
 #define _checkRoot(_s_, _n_) do{\
     if (_isRoot(_n_) && (_n_)->size==0){\
         (_s_)->root=(_n_)->last->child; \
-        (_s_)->root->parent=NULL; \
         (_s_)->root->pEntry=NULL; \
         --(_s_)->height; \
         free((_n_)->last); \
@@ -54,12 +53,11 @@
 #define _maxEntryNum(_s_) \
     ((_s_)->d*2-2)
 
-#define _setChild(_p_, _e_, _n_) do{\
+#define _setChild(_e_, _n_) do{\
     typeof((_e_)->child) __n_=(_n_); \
     (_e_)->child=(__n_); \
     if (__n_) {\
         (__n_)->pEntry=(_e_); \
-        (__n_)->parent=(_p_); \
     }\
 } while(0)
 
@@ -112,8 +110,8 @@ static void _bt_setsRotateRight(bt_sets *bts, bt_setsNode *ln){
     rn->head=last;
 
     tmp=ln->last->child;
-    _setChild(ln, ln->last, last->child);
-    _setChild(rn, last, tmp);
+    _setChild(ln->last, last->child);
+    _setChild(last, tmp);
     swap(btse->value, last->value);
 
     --ln->size;
@@ -133,8 +131,8 @@ static void _bt_setsRotateLeft(bt_sets *bts, bt_setsNode *rn){
     _linkEntries(head, ln->last);
 
     tmp=ln->last->child;
-    _setChild(ln, ln->last, head->child);
-    _setChild(ln, head, tmp);
+    _setChild(ln->last, head->child);
+    _setChild(head, tmp);
     swap(btse->value, head->value);
 
     --rn->size;
@@ -196,14 +194,7 @@ static void _bt_setsNodeMerger(bt_setsNode *left, bt_setsEntry *btse,
         bt_setsNode *right){
     bt_setsEntry *last=left->last->prev;
 
-    _setChild(right, btse, left->last->child);
-    if (!_isLeaf(left)){
-        bt_setsEntry *e=left->head;
-        while (e){
-            e->child->parent=right;
-            _next(e);
-        }
-    }
+    _setChild(btse, left->last->child);
 
     _linkEntries(last, btse);
     _linkEntries(btse, right->head);
@@ -387,10 +378,9 @@ bt_sets *bt_setsCreate(unsigned int d, entryFunc *func, void *privdata){
 
     _creatEndEntry(btse);
     btse->prev=NULL;
-    _setChild(btsn, btse, NULL);
+    _setChild(btse, NULL);
 
     btsn->size=0;
-    btsn->parent=NULL;
     btsn->pEntry=NULL;
     btsn->head=btse;
     btsn->last=btse;
@@ -446,32 +436,33 @@ static int _bt_setsNodeSplit(bt_setsNode *btsn, bt_setsEntry **me, bt_setsNode *
         _creatEndEntry(btse);
         _linkEntries((*me)->prev, btse);
         (*nn)->last=btse;
-        _setChild(*nn, btse, (*me)->child);
+        _setChild(btse, (*me)->child);
 
         btsn->head=(*me)->next;
         btsn->head->prev=NULL;
         btsn->size=size-size/2-1;
-
-        if (!_isLeaf(btsn)){
-            bt_setsEntry *e=(*nn)->head;
-            while (e){
-                e->child->parent=*nn;
-                _next(e);
-            }
-        }
 
         return BTREE_OPT_OK;
     }
     return BTREE_OPT_ERR;
 }
 
+void bt_setsFree(bt_sets *bts){
+    _bt_setsFreeNode(bts->root);
+    free(bts);
+}
+
 bt_setsEntry *bt_setsAdd(bt_sets *bts, entryValue ev){
-    bt_setsNode *btsn, *parent, *nn;
+    bt_setsNode *btsn, **parents;
     bt_setsEntry *btse, *me;
     unsigned int i;
     int comp;
+    bt_setsNode *sn=NULL, *nn, *parent;
+    bt_setsEntry *se=NULL;
 
     btsn=bts->root;
+    parents=malloc(sizeof(bt_setsNode)*bts->height);
+    parents[0]=bts->root;
     for (i=1; i<bts->height; ++i){
         for (btse=btsn->head; btse; ){
             comp=_entryCompare(bts, ev, btse->value);
@@ -480,70 +471,67 @@ bt_setsEntry *bt_setsAdd(bt_sets *bts, entryValue ev){
             }
             else{
                 if (comp==0){
+                    free(parents);
                     return NULL;
                 }
                 btsn=btse->child;
+                parents[i]=btsn;
                 break;
             }
         }
     }
-
     btse=malloc(sizeof(bt_setsEntry));
-    if (btse){
-        bt_setsNode *sn=NULL;
-        bt_setsEntry *se=NULL;
+    btse->value=ev;
+    _setChild(btse, NULL);
 
-        ++bts->size;
-        btse->value=ev;
-        _setChild(btsn, btse, NULL);
-        me=btse;
-        while (_bt_setsAddEntryToNode(bts, btsn, me, se)==BTREE_OPT_OK){
-            if (sn){
-                _setChild(btsn, me->next, sn);
-                sn=NULL;
-            }
-            if (btsn->size>_maxEntryNum(bts)){
-                _bt_setsNodeSplit(btsn, &me, &nn);
-                parent=btsn->parent;
-                if (parent==NULL){
-                    bt_setsEntry *ne;
+    ++bts->size;
+    me=btse;
+    i=bts->height-1;
+    while (_bt_setsAddEntryToNode(bts, btsn, me, se)==BTREE_OPT_OK){
+        if (sn){
+            _setChild(me->next, sn);
+            sn=NULL;
+        }
+        if (btsn->size>_maxEntryNum(bts)){
+            _bt_setsNodeSplit(btsn, &me, &nn);
+            parent=(--i)>=0 && i<bts->height?parents[i]:NULL;
+            if (parent==NULL){
+                bt_setsEntry *ne;
 
-                    parent=malloc(sizeof(bt_setsNode));
-                    parent->size=1;
-                    parent->parent=NULL;
-                    parent->head=me;
+                parent=malloc(sizeof(bt_setsNode));
+                parent->size=1;
+                parent->pEntry=NULL;
+                parent->head=me;
 
-                    _creatEndEntry(ne);
-                    ne->prev=me;
-                    parent->last=ne;
-                    _setChild(parent, ne, btsn);
+                _creatEndEntry(ne);
+                ne->prev=me;
+                parent->last=ne;
+                _setChild(ne, btsn);
 
-                    me->next=ne;
-                    me->prev=NULL;
-                    _setChild(parent, me, nn);
+                me->next=ne;
+                me->prev=NULL;
+                _setChild(me, nn);
 
-                    bts->root=parent;
-                    ++bts->height;
+                bts->root=parent;
+                ++bts->height;
 
-                    return btse;
-                }
-                else{
-                    _setChild(parent, me, nn);
-                    sn=btsn;
-                    se=btsn->pEntry;
-                    btsn=parent;
-                }
-            }
-            else{
+                free(parents);
                 return btse;
             }
+            else{
+                _setChild(me, nn);
+                sn=btsn;
+                se=btsn->pEntry;
+                btsn=parent;
+            }
         }
-        free(btse);
+        else{
+            free(parents);
+            return btse;
+        }
     }
-    return NULL;
-}
 
-void bt_setsFree(bt_sets *bts){
-    _bt_setsFreeNode(bts->root);
-    free(bts);
+    free(parents);
+    free(btse);
+    return NULL;
 }
