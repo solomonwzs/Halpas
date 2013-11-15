@@ -23,16 +23,14 @@ int dllistLeftPush(dllist *dl, void *value){
 
         if (dl->head){
             dl->head->prev=dln;
-        }
-        else{
+        } else{
             dl->tail=dln;
         }
         dl->head=dln;
         dl->length++;
 
         return 1;
-    }
-    else{
+    } else{
         return 0;
     }
 }
@@ -61,16 +59,14 @@ int dllistRightPush(dllist *dl, void *value){
 
         if (dl->tail){
             dl->tail->next=dln;
-        }
-        else{
+        } else{
             dl->head=dln;
         }
         dl->tail=dln;
         dl->length++;
 
         return 1;
-    }
-    else{
+    } else{
         return 0;
     }
 }
@@ -98,8 +94,7 @@ dllistNode *dllistIndex(dllist *dl, long index){
         while (dln && index--){
             dln=dln->prev;
         }
-    }
-    else{
+    } else{
         dln=dl->head;
         while (dln && index--){
             dln=dln->next;
@@ -123,13 +118,11 @@ void dllistFilter(dllist *dl, int (*filter)(void *)){
                     dl->length--;
                     dl->free(n->value);
                     free(n);
-                }
-                else{
+                } else{
                     p=&n->next;
                 }
             }
-        }
-        else{
+        } else{
             for (p=&dl->head; *p; ){
                 n=*p;
                 if (filter(n->value)>0){
@@ -139,8 +132,7 @@ void dllistFilter(dllist *dl, int (*filter)(void *)){
                     *p=n->next;
                     dl->length--;
                     free(n);
-                }
-                else{
+                } else{
                     p=&n->next;
                 }
             }
@@ -158,8 +150,7 @@ void dllistFree(dllist *dl){
             free(dln);
             dln=next;
         }
-    }
-    else{
+    } else{
         while (dln){
             next=dln->next;
             free(dln);

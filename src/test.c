@@ -133,12 +133,10 @@ void test_dict(){
         if (de){
             if (dictEntryType(de)==ENTRY_TYPE_UINT){
                 printf("%s\t%li\n", s[i], dictEntryUInt(de));
-            }
-            else if (dictEntryType(de)==ENTRY_TYPE_POINT){
+            } else if (dictEntryType(de)==ENTRY_TYPE_POINT){
                 printf("%s\t%s\n", s[i], (char *)dictEntryPoint(de));
             }
-        }
-        else{
+        } else{
             printf("%s\tnull\n", s[i]);
         }
     }

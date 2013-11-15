@@ -180,15 +180,13 @@ bt_setsEntry *bt_setsFind(const bt_sets *bts, const entryValue ev){
         comp=_entryCompare(bts, ev, btse->value);
         if (comp==0){
             return btse;
-        }
-        else if (comp<0){
+        } else if (comp<0){
             if (_isLeaf(btsn)){
                 return NULL;
             }
             btsn=btse->child;
             btse=btsn->head;
-        }
-        else {
+        } else {
             _next(btse);
         }
     }
@@ -220,19 +218,16 @@ static bt_setsEntry *_bt_setsDelEntry(bt_sets *bts, bt_setsNode *btsn,
         _removeEntry(btse);
         --btsn->size;
         return btse;
-    }
-    else{
+    } else{
         if (_leftChild(btse)->size>_minEntryNum(bts)){
             e=_bt_setsDelMax(bts, _leftChild(btse));
             swap(btse->value, e->value);
             return e;
-        }
-        else if (_rightChild(btse)->size>_minEntryNum(bts)){
+        } else if (_rightChild(btse)->size>_minEntryNum(bts)){
             e=_bt_setsDelMin(bts, _rightChild(btse));
             swap(btse->value, e->value);
             return e;
-        }
-        else{
+        } else{
             bt_setsNode *rightChild=_rightChild(btse);
             bt_setsNode *leftChild=_leftChild(btse);
 
@@ -254,18 +249,15 @@ static bt_setsEntry *_bt_setsDelMax(bt_sets *bts, bt_setsNode *btsn){
         _removeEntry(last);
         --btsn->size;
         return last;
-    }
-    else{
+    } else{
         bt_setsNode *child=btsn->last->child;
         bt_setsNode *lb=_leftBrother(child);
         unsigned int minSize=_minEntryNum(bts);
 
         if (child->size>minSize){
-        }
-        else if (lb->size>minSize){
+        } else if (lb->size>minSize){
             _bt_setsRotateRight(bts, lb);
-        }
-        else{
+        } else{
             last=btsn->last->prev;
             _removeEntry(last);
             --btsn->size;
@@ -284,8 +276,7 @@ static bt_setsEntry *_bt_setsDelMin(bt_sets *bts, bt_setsNode *btsn){
         _removeEntry(head);
         --btsn->size;
         return head;
-    }
-    else{
+    } else{
         bt_setsNode *child=btsn->head->child;
         bt_setsNode *rb=_rightBrother(child);
         unsigned int minSize=_minEntryNum(bts);
@@ -296,8 +287,7 @@ static bt_setsEntry *_bt_setsDelMin(bt_sets *bts, bt_setsNode *btsn){
         if (rb->size>minSize){
             _bt_setsRotateLeft(bts, rb);
             return _bt_setsDelMin(bts, child);
-        }
-        else{
+        } else{
             head=btsn->head;
             _next(btsn->head);
             _removeEntry(head);
@@ -318,8 +308,7 @@ static bt_setsEntry *_bt_setsDelValue(bt_sets *bts, const entryValue ev){
         comp=_entryCompare(bts, ev, btse->value);
         if (comp==0){
             return _bt_setsDelEntry(bts, btsn, btse);
-        }
-        else if (comp<0){
+        } else if (comp<0){
             if (btse->child->size==minSize){
                 bt_setsNode *child=btse->child;
                 bt_setsNode *lb=_leftBrother(child);
@@ -327,19 +316,16 @@ static bt_setsEntry *_bt_setsDelValue(bt_sets *bts, const entryValue ev){
 
                 if (lb && lb->size>minSize){
                     _bt_setsRotateRight(bts, lb);
-                }
-                else if (rb && rb->size>minSize){
+                } else if (rb && rb->size>minSize){
                     _bt_setsRotateLeft(bts, rb);
-                }
-                else{
+                } else{
                     if (lb){
                         bt_setsEntry *mid=btse->prev;
                         _checkHead(btsn, mid);
                         _removeEntry(mid);
                         _bt_setsNodeMerger(lb, mid, child);
                         btse=mid->next;
-                    }
-                    else{
+                    } else{
                         _checkHead(btsn, btse);
                         _removeEntry(btse);
                         _bt_setsNodeMerger(child, btse, rb);
@@ -354,8 +340,7 @@ static bt_setsEntry *_bt_setsDelValue(bt_sets *bts, const entryValue ev){
             }
             btsn=btse->child;
             btse=btsn->head;
-        }
-        else{
+        } else{
             _next(btse);
         }
     }
@@ -409,15 +394,13 @@ static int _bt_setsAddEntryToNode(bt_sets *bts, bt_setsNode *btsn,
         comp=_entryCompare(bts, ev, p->value);
         if (comp==0){
             return BTREE_OPT_ERR;
-        }
-        else if (comp<0){
+        } else if (comp<0){
             break;
         }
     }
     if (p->prev){
         _linkEntries(p->prev, btse);
-    }
-    else{
+    } else{
         btse->prev=NULL;
         btsn->head=btse;
     }
@@ -455,8 +438,7 @@ static int _bt_setsNodeSplit(bt_setsNode *btsn, bt_setsEntry **me, bt_setsNode *
 void bt_setsFree(bt_sets *bts, const int freeval){
     if (freeval!=0){
         _bt_setsFreeNode(bts, bts->root);
-    }
-    else{
+    } else{
         _bt_setsFreeNode(NULL, bts->root);
     }
     free(bts);
@@ -478,8 +460,7 @@ bt_setsEntry *bt_setsAdd(bt_sets *bts, entryValue ev){
             comp=_entryCompare(bts, ev, btse->value);
             if (comp>0){
                 btse=btse->next;
-            }
-            else{
+            } else{
                 if (comp==0){
                     free(parents);
                     return NULL;
@@ -527,15 +508,13 @@ bt_setsEntry *bt_setsAdd(bt_sets *bts, entryValue ev){
 
                 free(parents);
                 return btse;
-            }
-            else{
+            } else{
                 _setChild(me, nn);
                 sn=btsn;
                 se=btsn->pEntry;
                 btsn=parent;
             }
-        }
-        else{
+        } else{
             free(parents);
             return btse;
         }

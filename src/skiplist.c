@@ -97,8 +97,7 @@ skiplistNode *skiplistAddRaw(skiplist *sl, void *key){
         ++sl->length;
         
         return x;
-    }
-    else{
+    } else{
         return NULL;
     }
 }
@@ -117,8 +116,7 @@ skiplistNode *skiplistSearch(skiplist *sl, void *key){
     x=x->forward[0];
     if (x && skiplistKeyCompare(sl, x->key, key)==0){
         return x;
-    }
-    else{
+    } else{
         return NULL;
     }
 }

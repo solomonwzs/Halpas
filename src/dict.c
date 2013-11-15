@@ -8,8 +8,7 @@ static int _dictHashTableInit(dictHashTable *ht, unsigned long size){
 
     if (size==0){
         ht->table=NULL;
-    }
-    else{
+    } else{
         ht->table=malloc(sizeof(dictEntry *)*size);
 
         if (ht){
@@ -17,8 +16,7 @@ static int _dictHashTableInit(dictHashTable *ht, unsigned long size){
             for (i=0; i<size; ++i){
                 ht->table[i]=NULL;
             }
-        }
-        else{
+        } else{
             return DICT_OPT_ERR;
         }
     }
@@ -54,8 +52,7 @@ static void _dictRehashStep(dict *d){
 
     if (dht1->used==0){
         d->rehashing=0;
-    }
-    else{
+    } else{
         dictEntry *de, *next;
         unsigned long i, hashIndex;
         dictHashTable *dht0=&d->ht[0];
@@ -195,8 +192,7 @@ int dictDelete(dict *d, const void *key, const int freeval){
                 --d->ht[i].used;
                 free(de);
                 return DICT_OPT_OK;
-            }
-            else{
+            } else{
                 p=&de->next;
             }
         }
